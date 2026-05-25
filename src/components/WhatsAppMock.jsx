@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Image, Mic, CheckCheck, Sparkles, Languages, Volume2, ArrowRight, Play, Square, Loader2, Zap } from 'lucide-react';
+import { Image, Mic, CheckCheck, Sparkles, Volume2, ArrowRight, Play, Pause, Loader2, Zap } from 'lucide-react';
 import { artisans, products } from '../data/mockData';
 import { uploadCraftImage, mapBackendProductToUI } from '../services/kriticamApi';
+import { t, translateField, speakText } from '../utils/translator';
+
+import { Image, Mic, CheckCheck, Sparkles, Volume2, ArrowRight, Play, Pause, Loader2, Zap, Languages } from 'lucide-react';
 
 export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLanguage }) {
   const [messages, setMessages] = useState([
     {
       id: 1,
       sender: "system",
-      text: "नमस्ते! हाथसे डिजिटल असिस्टेंट में आपका स्वागत है। अपनी कलाकृति बेचने के लिए फोटो भेजें या नीचे माइक दबाकर बोलें।",
-      textEn: "Namaste! Welcome to HaathSe Assistant. Upload a photo of your craft or hold the mic button to speak.",
+      textHI: "नमस्ते! हाथसे डिजिटल असिस्टेंट में आपका स्वागत है। अपनी कलाकृति बेचने के लिए फोटो भेजें या नीचे माइक दबाकर बोलें।",
+      textEN: "Namaste! Welcome to HaathSe Assistant. Upload a photo of your craft or hold the mic button to speak.",
       time: "12:30 PM"
     }
   ]);
@@ -17,6 +20,7 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [uploadedProduct, setUploadedProduct] = useState(null);
+  const [playingVoiceId, setPlayingVoiceId] = useState(null);
   const [isLiveUploading, setIsLiveUploading] = useState(false); // Real API upload state
   const fileInputRef = useRef(null);
   const chatEndRef = useRef(null);
@@ -53,70 +57,140 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
     setMessages((prev) => [...prev, msg]);
   };
 
-  // Simulate Artisan uploading Blue Pottery (Vase)
+  // Play voice transcript snippet aloud
+  const handlePlayVoice = (msg) => {
+    if (playingVoiceId === msg.id) {
+      window.speechSynthesis.cancel();
+      setPlayingVoiceId(null);
+      return;
+    }
+    
+    setPlayingVoiceId(msg.id);
+    speakText(
+      msg.transcriptRaw,
+      msg.artisanLang, 
+      () => setPlayingVoiceId(msg.id),
+      () => setPlayingVoiceId(null)
+    );
+  };
+
+  // Play text message aloud
+  const handlePlayTextMsg = (msg) => {
+    if (playingVoiceId === msg.id) {
+      window.speechSynthesis.cancel();
+      setPlayingVoiceId(null);
+      return;
+    }
+
+    const textToSpeak = msg.sender === 'system'
+      ? (language === 'HI' ? msg.textHI : msg.textEN) 
+      : msg.text;
+
+    setPlayingVoiceId(msg.id);
+    speakText(
+      textToSpeak,
+      language,
+      () => setPlayingVoiceId(msg.id),
+      () => setPlayingVoiceId(null)
+    );
+  };
+
+  // Simulate Artisan uploading selected craft preset
   const triggerSimulation = (selectedProdId) => {
     const prod = products.find(p => p.id === selectedProdId) || products[0];
     const artisan = artisans.find(a => a.id === prod.artisanId);
     setUploadedProduct(prod);
+
+    // Cancel active playback
+    window.speechSynthesis.cancel();
+    setPlayingVoiceId(null);
 
     // 1. Artisan uploads image
     addMessage({
       id: Date.now() + 1,
       sender: "artisan",
       mediaUrl: prod.image,
-      caption: `भेजा गया फोटो: ${prod.craft}`,
-      captionEn: `Sent photo: ${prod.craft}`,
+      caption: `भेजा गया फोटो: ${translateField(prod, 'craft', 'HI')}`,
+      captionEn: `Sent photo: ${translateField(prod, 'craft', 'EN')}`,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     });
 
-    // 2. Start recording voice note after 1.5s
+    // 2. Start recording voice note after 1.2s
     setTimeout(() => {
       setIsRecording(true);
-      // Let it record for 3 seconds
+      
       setTimeout(() => {
         setIsRecording(false);
-        // Add voice message
+        
+        // Detect artisan's default regional language
+        const artisanLang = 
+          prod.id === "prod-1" ? "HI" : 
+          prod.id === "prod-2" ? "TA" : 
+          prod.id === "prod-3" ? "HI" : 
+          prod.id === "prod-5" ? "KN" : "EN";
+        const voiceText = translateField(artisan, 'voiceTranscript', artisanLang);
+
+        // Add voice note message
         addMessage({
           id: Date.now() + 2,
           sender: "artisan",
           isVoiceNote: true,
-          voiceDuration: "0:04",
-          transcript: artisan.voiceTranscript,
+          voiceDuration: "0:05",
+          transcriptRaw: voiceText,
+          transcriptEn: translateField(artisan, 'voiceTranscript', 'EN'),
+          artisanLang: artisanLang,
+          artisanName: artisan.name,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
 
-        // 3. AI responds (Typing indicator starts)
+        // 3. AI responds
         setTimeout(() => {
           setIsTyping(true);
           
           setTimeout(() => {
             setIsTyping(false);
-            // AI Response with detected details
+            
+            const craftText = translateField(prod, 'craft', language);
+            const statusText = translateField(prod, 'authenticityStatus', language);
+
+            const aiResponseDict = {
+              EN: `KritiCam AI identified your craft: ${craftText}! ✨\n\n• Artisan: ${artisan.name}\n• Location: ${artisan.village}, ${artisan.state}\n• Estimated Value: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• Integrity: ${prod.kritiCamScore}%\n• Status: ${statusText}\n\nWhisper AI translated the dialect voice note. Listing details generated. Ready to publish?`,
+              HI: `KritiCam AI ने कलाकृति पहचान ली है: ${craftText}! ✨\n\n• कारीगर: ${artisan.name}\n• स्थान: ${artisan.village}, ${artisan.state}\n• अनुमानित मूल्य: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• शुद्धता: ${prod.kritiCamScore}%\n• स्थिति: ${statusText}\n\nविस्पर एआई ने आपकी बोली का अनुवाद कर दिया है। उत्पाद सूची तैयार है। क्या आप इसे प्रकाशित करना चाहते हैं?`,
+              TA: `கிருடிகேம் AI உங்கள் தயாரிப்பை அடையாளம் கண்டுள்ளது: ${craftText}! ✨\n\n• கைவினைஞர்: ${artisan.name}\n• இடம்: ${artisan.village}, ${artisan.state}\n• மதிப்பு: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• நம்பகத்தன்மை: ${prod.kritiCamScore}%\n• நிலை: ${statusText}\n\nவிஸ்பர் AI உங்கள் வட்டாரப் பேச்சு மொழியை மொழிபெயர்த்துள்ளது. விவரங்கள் தயாராக உள்ளன. வெளியிடலாமா?`,
+              BN: `কৃতি ক্যাম AI আপনার শিল্প সনাক্ত করেছে: ${craftText}! ✨\n\n• কারিগর: ${artisan.name}\n• স্থান: ${artisan.village}, ${artisan.state}\n• আনুমানিক মূল্য: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• শুদ্ধতা: ${prod.kritiCamScore}%\n• অবস্থা: ${statusText}\n\nহুইস্পার এআই উপভাষার ভয়েস নোট অনুবাদ করেছে। বিবরণ প্রস্তুত। প্রকাশ করতে চান?`,
+              KN: `ಕೃಟಿಕಾಮ್ ಎಐ ನಿಮ್ಮ ಕಲಾಕೃತಿಯನ್ನು ಗುರುತಿಸಿದೆ: ${craftText}! ✨\n\n• ಕುಶಲಕರ್ಮಿ: ${artisan.name}\n• ಸ್ಥಳ: ${artisan.village}, ${artisan.state}\n• ಅಂದಾಜು ಮೌಲ್ಯ: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• ನಿಖರತೆ: ${prod.kritiCamScore}%\n• ಸ್ಥಿತಿ: ${statusText}\n\nವಿಸ್ಪರ್ ಎಐ ಪ್ರಾದೇಶಿಕ ಧ್ವನಿಯನ್ನು ಭಾಷಾಂತರಿಸಿದೆ. ವಿವರಗಳು ಸಿದ್ಧವಾಗಿವೆ. ಪ್ರಕಟಿಸಲು ಸಿದ್ಧವೇ?`,
+              MR: `क्रिटिकॅम एआय ने तुमची कलाकृती ओळखली आहे: ${craftText}! ✨\n\n• कारागीर: ${artisan.name}\n• ठिकाण: ${artisan.village}, ${artisan.state}\n• अंदाजे किंमत: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• शुद्धता: ${prod.kritiCamScore}%\n• स्थिती: ${statusText}\n\nविस्पर एआय ने बोली भाषेचे भाषांतर केले आहे. उत्पादन सूची तयार आहे. प्रकाशित करू इच्छिता?`,
+              TE: `కృతిక్యామ్ AI మీ కళను గుర్తించింది: ${craftText}! ✨\n\n• కళాకారుడు: ${artisan.name}\n• ప్రాంతం: ${artisan.village}, ${artisan.state}\n• అంచనా విలువ: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• ఖచ్చితత్వం: ${prod.kritiCamScore}%\n• స్థితి: ${statusText}\n\nవిస్పర్ AI మీ స్థానిక సంభాషణను అనువదించింది. వివరాలు సిద్ధంగా ఉన్నాయి. ప్రచురించడానికి సిద్ధమా?`
+            };
+
+            const aiResponseText = aiResponseDict[language] || aiResponseDict['EN'];
+
             addMessage({
               id: Date.now() + 3,
               sender: "ai",
-              text: `KritiCam AI ने कलाकृति पहचान ली है: ${prod.craft}! ✨\n\n• कारीगर: ${artisan.name}\n• स्थान: ${artisan.village}, ${artisan.state}\n• अनुमानित मूल्य: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• शुद्धता स्कोर: ${prod.kritiCamScore}%\n\nविवरण और डिजिटल प्रमाण-पत्र तैयार है। क्या आप इसे बाजार में प्रकाशित करना चाहते हैं?`,
-              textEn: `KritiCam AI identified your craft: ${prod.craft}! ✨\n\n• Artisan: ${artisan.name}\n• Location: ${artisan.village}, ${artisan.state}\n• Estimated Value: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• Authenticity: ${prod.kritiCamScore}%\n\nListing & digital provenance certificate generated. Ready to list on the global market?`,
+              text: aiResponseText,
               time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               showActionBtn: true
             });
-          }, 3500);
+          }, 3200);
 
         }, 1500);
 
-      }, 3500);
-    }, 1500);
+      }, 3000);
+    }, 1200);
   };
 
   const handlePublishClick = () => {
+    // Stop synthesis playbacks
+    window.speechSynthesis.cancel();
+    setPlayingVoiceId(null);
     if (onUploadComplete && uploadedProduct) {
       onUploadComplete(uploadedProduct);
     }
   };
 
   // ─── REAL BACKEND UPLOAD ─────────────────────────────────────────────────────
-  // This is the LIVE demo path: triggers the actual GPT-4o API pipeline.
-  // Judges see a real photo turn into a structured luxury catalog listing.
+  // Direct file picker connection for real-time live uploads
   const handleRealFileUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -124,7 +198,6 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
     const previewUrl = URL.createObjectURL(file);
     setIsLiveUploading(true);
 
-    // Show artisan uploading the photo in chat
     addMessage({
       id: Date.now() + 1,
       sender: "artisan",
@@ -134,18 +207,16 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     });
 
-    // Show AI thinking
     const typingTimeout = setTimeout(() => setIsTyping(true), 800);
 
     try {
-      // 🔥 Real API call — hits GPT-4o Vision
+      // Hits GPT-4o Vision directly in FastAPI
       const result = await uploadCraftImage(file);
       const backendProduct = result.product;
       const uiProduct = mapBackendProductToUI(backendProduct);
       setUploadedProduct(uiProduct);
       setIsTyping(false);
 
-      // AI responds with REAL data from GPT-4o
       addMessage({
         id: Date.now() + 2,
         sender: "ai",
@@ -153,12 +224,11 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
         textEn: `KritiCam AI identified your craft: ${backendProduct.craft_style}! ✨\n\n• Style: ${backendProduct.craft_style}\n• Region: ${backendProduct.heritage_region}\n• Estimated Value: ₹${backendProduct.fair_price_inr?.toLocaleString()} ($${backendProduct.fair_price_usd})\n• Authenticity: ${backendProduct.craftsmanship_score}%\n\nProvenance certificate generated. Ready to publish?`,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         showActionBtn: true,
-        isRealResult: true,  // Flag to show ⚡ Live AI badge
+        isRealResult: true,
       });
 
     } catch (err) {
       setIsTyping(false);
-      // Graceful error message in chat
       addMessage({
         id: Date.now() + 3,
         sender: "ai",
@@ -169,46 +239,48 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
     } finally {
       clearTimeout(typingTimeout);
       setIsLiveUploading(false);
-      // Reset file input so same file can be re-uploaded
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
-  // ─────────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="w-full max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch bg-ivory p-4 md:p-8 rounded-3xl border border-gold-500/10 shadow-premium">
       
       {/* Simulation Controls Panel */}
-      <div className="lg:col-span-5 flex flex-col justify-between p-6 bg-charcoal rounded-2xl border border-white/5 text-ivory text-left">
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] uppercase tracking-widest text-gold-400 font-semibold px-2.5 py-1 rounded bg-white/5 border border-white/10">
-              ऑडियो निर्देश / Voice Guide
-            </span>
-            <button 
-              onClick={speakInstructions}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/10 text-[10px] font-semibold text-gold-400 border border-white/20 hover:bg-white/20 transition-all cursor-pointer"
-              title="Hear Instructions / निर्देश सुनें"
-            >
-              <Volume2 className="w-3.5 h-3.5 animate-pulse-subtle" />
-              <span>सुनें / Listen</span>
-            </button>
+      <div className="lg:col-span-5 flex flex-col justify-between p-6 bg-charcoal rounded-2xl border border-white/5 text-ivory text-left relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5 bg-grid" />
+        
+        <div className="space-y-6 relative z-10">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[10px] uppercase tracking-widest text-gold-400 font-semibold px-2.5 py-1 rounded bg-white/5 border border-white/10">
+                ऑडियो निर्देश / Voice Guide
+              </span>
+              <button 
+                onClick={speakInstructions}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/10 text-[10px] font-semibold text-gold-400 border border-white/20 hover:bg-white/20 transition-all cursor-pointer"
+                title="Hear Instructions / निर्देश सुनें"
+              >
+                <Volume2 className="w-3.5 h-3.5 animate-pulse-subtle" />
+                <span>सुनें / Listen</span>
+              </button>
+            </div>
+            <h3 className="title-serif text-3xl font-medium mb-3 text-white">
+              Artisan Studio
+            </h3>
+            <p className="text-xs text-ivory/50 leading-relaxed font-sans font-light mb-6">
+              अपनी कलाकृति का फोटो अपलोड करें और तुरंत वैश्विक बाजार में प्रवेश करें।
+              (Upload a photo of your craft to instantly analyze and register it on the global luxury marketplace).
+            </p>
           </div>
-          <h3 className="title-serif text-3xl font-medium mb-3 text-white">
-            Artisan Studio
-          </h3>
-          <p className="text-xs text-ivory/50 leading-relaxed font-sans font-light mb-6">
-            अपनी कलाकृति का फोटो अपलोड करें और तुरंत वैश्विक बाजार में प्रवेश करें।
-            (Upload a photo of your craft to instantly analyze and register it on the global luxury marketplace).
-          </p>
 
           {/* LIVE UPLOAD — Real GPT-4o Demo */}
-          <div className="mb-6 p-4 rounded-xl border border-terracotta/30 bg-terracotta/5 space-y-2">
+          <div className="p-4 rounded-xl border border-terracotta/30 bg-terracotta/5 space-y-2">
             <p className="text-[10px] uppercase tracking-widest text-terracotta font-semibold flex items-center gap-1.5">
-              <Zap className="w-3 h-3" />
+              <Zap className="w-3 h-3 animate-pulse" />
               Live AI Upload (Real Backend)
             </p>
-            <p className="text-[10px] text-ivory/40 leading-relaxed">
+            <p className="text-[9px] text-ivory/40 leading-relaxed font-sans">
               Upload any craft photo to trigger the real GPT-4o Vision pipeline.
             </p>
             <input
@@ -236,44 +308,62 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
             </label>
           </div>
 
-          {/* Preset Buttons */}
-          <div className="space-y-4">
-            <p className="text-[10px] uppercase tracking-widest text-gold-500 font-semibold">Or Select Demo Craft to Simulate</p>
+          {/* Preset trigger panels */}
+          <div className="space-y-3">
+            <p className="text-[10px] uppercase tracking-widest text-gold-500 font-semibold mb-1">Simulate Artisan Upload</p>
             
-            {products.map((prod) => (
-              <button
-                key={prod.id}
-                onClick={() => triggerSimulation(prod.id)}
-                disabled={isRecording || isTyping}
-                className="w-full flex items-center justify-between p-3.5 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 hover:border-gold-500/30 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed group text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <img 
-                    src={prod.image} 
-                    alt={prod.name} 
-                    className="w-10 h-10 rounded-lg object-cover border border-white/15"
-                  />
-                  <div>
-                    <h5 className="text-xs font-semibold text-white tracking-wide">{prod.craft}</h5>
-                    <p className="text-[10px] text-ivory/50">Artisan: {artisans.find(a => a.id === prod.artisanId)?.name}</p>
+            {products.map((prod) => {
+              const art = artisans.find(a => a.id === prod.artisanId);
+              const isSelected = uploadedProduct?.id === prod.id;
+              
+              return (
+                <button
+                  key={prod.id}
+                  onClick={() => triggerSimulation(prod.id)}
+                  disabled={isRecording || isTyping || isLiveUploading}
+                  className={`w-full flex items-center justify-between p-3 bg-white/5 rounded-xl border transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed group text-left relative ${
+                    isSelected ? 'border-terracotta bg-white/10 shadow-[0_0_12px_rgba(212,91,52,0.35)]' : 'border-white/10 hover:bg-white/10 hover:border-gold-500/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <img 
+                      src={prod.image} 
+                      alt={translateField(prod, 'name', language)} 
+                      className="w-10 h-10 rounded-lg object-cover border border-white/15"
+                    />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h5 className="text-xs font-semibold text-white tracking-wide">
+                          {translateField(prod, 'craft', language)}
+                        </h5>
+                        {prod.id === 'prod-5' && (
+                          <span className="bg-terracotta text-white text-[7px] uppercase tracking-widest px-1.5 py-0.2 rounded font-bold border border-white/10 shadow-premium animate-pulse">
+                            Demo Target
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-ivory/50">
+                        {art?.name} ({art?.village})
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-gold-500 group-hover:translate-x-1 transition-transform" />
-              </button>
-            ))}
+                  <ArrowRight className="w-4 h-4 text-gold-500 group-hover:translate-x-1 transition-transform animate-pulse-subtle" />
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Informative Footer */}
-        <div className="mt-8 pt-6 border-t border-white/10 text-[10px] text-ivory/40 space-y-2">
-          <p className="flex items-center gap-1.5">
+        {/* Information badges */}
+        <div className="mt-8 pt-6 border-t border-white/10 text-[10px] text-ivory/40 space-y-2.5 relative z-10">
+          <div className="flex items-center gap-2">
             <Volume2 className="w-3.5 h-3.5 text-gold-400" />
-            Automatic Whisper translation from regional dialects
-          </p>
-          <p className="flex items-center gap-1.5">
+            <span>Dialect audio translation detects regional accents</span>
+          </div>
+          <div className="flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-terracotta" />
-            KritiCam Computer Vision validates weaving integrity
-          </p>
+            <span>KritiCam scans fabric density & geometry parameters</span>
+          </div>
         </div>
       </div>
 
@@ -294,7 +384,7 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
           
           {/* Lang Selector */}
           <button 
-            onClick={() => setLanguage(language === 'HI' ? 'EN' : 'HI')}
+            onClick={() => setLanguage && setLanguage(language === 'HI' ? 'EN' : 'HI')}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-zinc-800 text-[10px] font-semibold text-zinc-200 border border-zinc-700 hover:bg-zinc-700 transition-all cursor-pointer"
           >
             <Languages className="w-3.5 h-3.5" />
@@ -302,7 +392,7 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
           </button>
         </div>
 
-        {/* Chat Body */}
+        {/* Chat Body Container */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-grid" style={{
           backgroundColor: '#000000'
         }}>
@@ -314,9 +404,8 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
             return (
               <div 
                 key={msg.id} 
-                className={`flex ${isSelf ? 'justify-end' : 'justify-start'} animate-slide-up`}
+                className={`flex ${isSelf ? 'justify-end' : 'justify-start'} animate-fade-in`}
               >
-                {/* Message Bubble */}
                 <div 
                   className={`max-w-[85%] rounded-2xl p-3.5 text-xs shadow-premium relative text-left ${
                     isSelf 
@@ -326,55 +415,109 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
                         : 'bg-zinc-900 text-white rounded-tl-none border border-zinc-800'
                   }`}
                 >
-                  {/* Media Content */}
+                  {/* Image/Video attachments */}
                   {msg.mediaUrl && (
                     <div className="mb-2 rounded-lg overflow-hidden border border-white/5 bg-zinc-950 max-w-[240px]">
-                      <img src={msg.mediaUrl} alt="Uploaded Media" className="w-full object-cover aspect-[4/3]" />
+                      <img src={msg.mediaUrl} alt="Uploaded Media" className="w-full object-cover aspect-[4/3] hover:scale-105 transition-transform duration-700" />
+                      {msg.caption && (
+                        <p className="p-2 bg-zinc-900 text-white text-[10px] border-t border-zinc-800 leading-tight">
+                          {language === 'HI' ? msg.caption : msg.captionEn}
+                        </p>
+                      )}
                     </div>
                   )}
 
-                  {/* Voice Note Waves */}
+                  {/* Voice Note controls */}
                   {msg.isVoiceNote && (
-                    <div className="flex items-center gap-3.5 py-1 min-w-[200px]">
-                      <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-white border border-zinc-700">
-                        <Play className="w-3.5 h-3.5 fill-white" />
+                    <div className="space-y-2 min-w-[210px]">
+                      <div className="flex items-center gap-3.5 py-1">
+                        <button 
+                          onClick={() => handlePlayVoice(msg)}
+                          className="w-8 h-8 rounded-full bg-zinc-800 text-white flex items-center justify-center hover:bg-zinc-700 transition-colors border border-zinc-700 cursor-pointer"
+                        >
+                          {playingVoiceId === msg.id ? (
+                            <Pause className="w-3.5 h-3.5 fill-white" />
+                          ) : (
+                            <Play className="w-3.5 h-3.5 fill-white ml-0.5" />
+                          )}
+                        </button>
+                        
+                        {/* Interactive Waveform SVG */}
+                        <div className="flex-1 flex items-end gap-0.5 h-6">
+                          {[30, 60, 85, 45, 75, 95, 35, 65, 85, 55, 45, 65, 30, 75, 40].map((h, i) => (
+                            <span 
+                              key={i} 
+                              style={{ 
+                                height: `${h}%`,
+                                animationDelay: `${i * 35}ms`
+                              }} 
+                              className={`flex-1 bg-white rounded-full min-w-[2.5px] transition-all duration-300 ${
+                                playingVoiceId === msg.id ? 'animate-waveform-bar' : ''
+                              }`} 
+                            />
+                          ))}
+                        </div>
+                        <span className="text-[10px] text-zinc-400 font-semibold">{msg.voiceDuration}</span>
                       </div>
-                      <div className="flex-1 flex items-end gap-0.5 h-6">
-                        {/* Fake audio wave bars */}
-                        {[20, 50, 80, 40, 70, 90, 30, 60, 80, 50, 40, 60, 20, 70, 30].map((h, i) => (
-                          <span 
-                            key={i} 
-                            style={{ height: `${h}%` }} 
-                            className="flex-1 bg-white rounded-full min-w-[2px]" 
-                          />
-                        ))}
-                      </div>
-                      <span className="text-[10px] text-zinc-400 font-medium">{msg.voiceDuration}</span>
+
+                      {/* Transcribed Text Panel showing Translation process */}
+                      {msg.transcriptRaw && (
+                        <div className="p-2.5 bg-zinc-950 rounded-xl text-[10px] space-y-1.5 border border-zinc-800">
+                          <p className="text-[8px] uppercase tracking-widest font-bold text-white">
+                            Dialect Whisper Transcribe ({msg.artisanLang})
+                          </p>
+                          <p className="italic text-zinc-400">"{msg.transcriptRaw}"</p>
+                          
+                          {msg.artisanLang !== 'EN' && (
+                            <div className="pt-1.5 border-t border-zinc-800">
+                              <p className="text-[8px] uppercase tracking-widest font-bold text-white">
+                                AI Translation (English Catalog Copy)
+                              </p>
+                              <p className="text-zinc-300">"{msg.transcriptEn}"</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {/* Text Content */}
-                  {!msg.isVoiceNote && (
-                    <p className="whitespace-pre-line leading-relaxed font-sans font-light">
-                      {language === 'HI' ? msg.text : (msg.textEn || msg.text)}
-                    </p>
-                  )}
-
-                  {/* Transcript box for voice notes */}
-                  {msg.isVoiceNote && msg.transcript && (
-                    <div className="mt-2.5 pt-2 border-t border-zinc-800 text-[10px] text-zinc-400 italic bg-zinc-950 p-2 rounded">
-                      <p className="font-semibold text-[8px] uppercase tracking-wider text-white not-italic mb-0.5">Dialect Transcript:</p>
-                      "{msg.transcript}"
+                  {/* Standard Text Message */}
+                  {!msg.isVoiceNote && !msg.mediaUrl && (
+                    <div className="space-y-2">
+                      <p className="whitespace-pre-line leading-relaxed font-sans font-light">
+                        {isSystem 
+                          ? (language === 'HI' ? (msg.textHI || msg.text) : (msg.textEN || msg.textEn || msg.text))
+                          : msg.text}
+                      </p>
+                      
+                      {/* Audio voice guide reading for zero-literacy */}
+                      {(isAI || isSystem) && (
+                        <button 
+                          onClick={() => handlePlayTextMsg(msg)}
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] uppercase tracking-wider font-semibold transition-all border cursor-pointer ${
+                            playingVoiceId === msg.id 
+                              ? 'bg-zinc-800 border-zinc-700 text-white shadow-premium animate-pulse' 
+                              : 'bg-transparent border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                          }`}
+                        >
+                          {playingVoiceId === msg.id ? (
+                            <Pause className="w-2.5 h-2.5 fill-white" />
+                          ) : (
+                            <Volume2 className="w-2.5 h-2.5" />
+                          )}
+                          <span>{playingVoiceId === msg.id ? 'Stop Guide' : 'Voice Guide'}</span>
+                        </button>
+                      )}
                     </div>
                   )}
 
-                  {/* Message Info / Checkmark */}
-                  <div className="flex justify-end items-center gap-1.5 mt-1 text-[9px] opacity-60">
+                  {/* Message footer info */}
+                  <div className="flex justify-end items-center gap-1.5 mt-1.5 text-[9px] opacity-60">
                     <span>{msg.time}</span>
                     {isSelf && <CheckCheck className="w-3.5 h-3.5 text-blue-400" />}
                   </div>
 
-                  {/* Action Review Button for AI Response */}
+                  {/* Onboarding listing published triggers */}
                   {isAI && msg.showActionBtn && (
                     <div className="mt-4 space-y-2">
                       {msg.isRealResult && (
@@ -397,7 +540,7 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
             );
           })}
 
-          {/* AI Typing Indicator */}
+          {/* Typing Indicator */}
           {isTyping && (
             <div className="flex justify-start">
               <div className="bg-zinc-900 text-white rounded-2xl rounded-tl-none p-3.5 text-xs shadow-premium flex items-center gap-1.5 border border-zinc-800">
@@ -409,7 +552,7 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
             </div>
           )}
 
-          {/* Recording Overlay Inside Chat */}
+          {/* Recording Overlay */}
           {isRecording && (
             <div className="flex justify-end animate-slide-up">
               <div className="bg-red-950 text-red-200 border border-red-900 rounded-2xl rounded-tr-none p-3.5 text-xs shadow-premium min-w-[200px] flex items-center justify-between gap-3">
@@ -446,15 +589,15 @@ export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLan
             {language === 'HI' ? 'ऑटोमेटिक वॉयस मोड सक्रिय...' : 'Automatic voice mode active...'}
           </div>
 
-          {/* Zero-literacy Big Audio Mic Button */}
+          {/* Pulsing Mic */}
           <button 
-            disabled={isTyping}
+            disabled={isTyping || isLiveUploading}
             className={`w-12 h-12 rounded-full flex items-center justify-center text-white border transition-all duration-300 shadow-luxury cursor-pointer ${
               isRecording 
                 ? 'bg-red-600 border-red-500 scale-110 animate-pulse' 
                 : 'bg-zinc-800 border-zinc-700 hover:bg-zinc-700 hover:scale-105'
             }`}
-            title="Record Voice"
+            title="Hold to Record Voice Note"
           >
             <Mic className="w-5 h-5" />
           </button>

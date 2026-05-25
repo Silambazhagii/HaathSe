@@ -9,6 +9,8 @@ export default function ProductDetail({ product, onBackClick, language, lowBandw
   const [isNarratingStory, setIsNarratingStory] = useState(false);
   const [isVerifyingCert, setIsVerifyingCert] = useState(false);
   const [certVerified, setCertVerified] = useState(false);
+  const [verificationLogs, setVerificationLogs] = useState([]);
+  const [certStep, setCertStep] = useState(0);
 
   // Auto-stop any voice playbacks when navigating away
   useEffect(() => {
@@ -29,7 +31,11 @@ export default function ProductDetail({ product, onBackClick, language, lowBandw
     setIsPlayingAudio(true);
     
     // Dialect is recorded in original regional accent
-    const artisanLang = product.id === "prod-1" ? "HI" : product.id === "prod-2" ? "TA" : product.id === "prod-3" ? "HI" : "EN";
+    const artisanLang = 
+      product.id === "prod-1" ? "HI" : 
+      product.id === "prod-2" ? "TA" : 
+      product.id === "prod-3" ? "HI" : 
+      product.id === "prod-5" ? "KN" : "EN";
     const voiceText = translateField(artisan, 'voiceTranscript', artisanLang);
 
     speakText(
@@ -63,11 +69,38 @@ export default function ProductDetail({ product, onBackClick, language, lowBandw
   const handleVerifyCert = () => {
     if (certVerified) return;
     setIsVerifyingCert(true);
-    setTimeout(() => {
-      setIsVerifyingCert(false);
-      setCertVerified(true);
-    }, 2000);
+    setVerificationLogs([]);
+    setCertStep(0);
   };
+
+  // Simulated Ethereum ledger lookup sequence
+  useEffect(() => {
+    let timer;
+    if (isVerifyingCert) {
+      const logs = [
+        "Connecting to Ethereum Mainnet Node...",
+        `Resolving registry contract 0x47e1...78f579...`,
+        `Downloading listing payload for ${product.id} (SHA-256)...`,
+        `Validating scan integrity parameters (${product.kritiCamScore}% match)...`,
+        `Verifying signature from master private key...`,
+        "Registry Match CONFIRMED. Provenance certificate sealed!"
+      ];
+      
+      const runStep = (step) => {
+        if (step < logs.length) {
+          setCertStep(step);
+          setVerificationLogs(prev => [...prev, logs[step]]);
+          timer = setTimeout(() => runStep(step + 1), 500);
+        } else {
+          setIsVerifyingCert(false);
+          setCertVerified(true);
+        }
+      };
+      
+      runStep(0);
+    }
+    return () => clearTimeout(timer);
+  }, [isVerifyingCert]);
 
   const timelineMilestones = [
     { year: "14th Century", titleKey: "timeline_milestone_1", descKey: "timeline_milestone_1_desc" },
@@ -205,12 +238,26 @@ export default function ProductDetail({ product, onBackClick, language, lowBandw
               onClick={toggleStoryNarration}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] uppercase tracking-wider font-semibold transition-all duration-300 ${
                 isNarratingStory 
-                  ? 'bg-terracotta text-white border-terracotta animate-pulse' 
+                  ? 'bg-terracotta text-white border-terracotta' 
                   : 'bg-white border-gold-500/25 text-charcoal hover:border-charcoal'
               }`}
             >
-              {isNarratingStory ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-gold-500" />}
+              {isNarratingStory ? <VolumeX className="w-3.5 h-3.5 animate-spin" /> : <Volume2 className="w-3.5 h-3.5 text-gold-500" />}
               <span>{isNarratingStory ? 'Pause Read' : 'Read Narrative'}</span>
+              {isNarratingStory && (
+                <div className="flex items-end gap-0.5 h-3 pl-1">
+                  {[25, 75, 45, 90, 30].map((h, i) => (
+                    <span 
+                      key={i} 
+                      style={{ 
+                        height: `${h}%`,
+                        animationDelay: `${i * 80}ms`
+                      }} 
+                      className="w-[1.5px] bg-white rounded-full animate-waveform-bar" 
+                    />
+                  ))}
+                </div>
+              )}
             </button>
           </div>
           
@@ -228,13 +275,13 @@ export default function ProductDetail({ product, onBackClick, language, lowBandw
           <div className="p-5 bg-[#ECE7DE] rounded-3xl border border-gold-500/15 flex flex-col md:flex-row gap-5 items-center">
             <button 
               onClick={toggleDialectAudio}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-premium flex-shrink-0 ${
-                isPlayingAudio ? 'bg-terracotta text-white' : 'bg-charcoal text-ivory hover:bg-charcoal/90'
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-premium flex-shrink-0 relative ${
+                isPlayingAudio ? 'bg-terracotta text-white shadow-glow-terracotta scale-105' : 'bg-charcoal text-ivory hover:bg-charcoal/90'
               }`}
             >
-              {isPlayingAudio ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-ivory ml-0.5" />}
+              {isPlayingAudio ? <Pause className="w-5 h-5 animate-pulse" /> : <Play className="w-5 h-5 fill-ivory ml-0.5 animate-pulse-subtle" />}
             </button>
-            <div className="flex-1 text-center md:text-left space-y-1.5">
+            <div className="flex-1 text-center md:text-left space-y-1.5 w-full">
               <div className="flex items-center justify-between gap-4">
                 <p className="text-[9px] uppercase tracking-widest text-charcoal font-bold">Listen to the Artisan's Original Voice Note</p>
                 <span className="text-[8px] px-2 py-0.5 rounded bg-charcoal/10 text-charcoal/70 font-semibold uppercase">Dialect Audio</span>
@@ -242,6 +289,20 @@ export default function ProductDetail({ product, onBackClick, language, lowBandw
               <p className="text-xs text-charcoal/80 font-light italic leading-relaxed">
                 "{translateField(artisan, 'voiceTranscript', language)}"
               </p>
+              {isPlayingAudio && (
+                <div className="flex items-end justify-center md:justify-start gap-1 h-5 pt-1.5">
+                  {[20, 60, 45, 90, 30, 70, 55, 95, 40, 65, 80, 50, 35, 60, 30].map((h, i) => (
+                    <span 
+                      key={i} 
+                      style={{ 
+                        height: `${h}%`,
+                        animationDelay: `${i * 45}ms`
+                      }} 
+                      className="w-[2px] bg-terracotta rounded-full animate-waveform-bar" 
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -283,100 +344,143 @@ export default function ProductDetail({ product, onBackClick, language, lowBandw
         </div>
 
         {/* Stacked split graph */}
-        <div className="space-y-6">
-          <div className="w-full h-8 bg-white/10 rounded-full flex overflow-hidden border border-white/5 shadow-inner">
-            <div className="h-full bg-terracotta" style={{ width: '62%' }} title="Artisan Wages" />
-            <div className="h-full bg-gold-500" style={{ width: '18%' }} title="Raw Materials" />
-            <div className="h-full bg-emerald-600" style={{ width: '10%' }} title="Village Fund" />
-            <div className="h-full bg-indigo-600" style={{ width: '6%' }} title="Logistics" />
-            <div className="h-full bg-white/30" style={{ width: '4%' }} title="Platform Fee" />
-          </div>
+        {(() => {
+          const breakdown = product.fairPriceBreakdown;
+          const totalVal = breakdown.artisanWage + breakdown.rawMaterials + breakdown.villageDevelopmentFund + breakdown.shippingInsurance + breakdown.platformFee;
+          const wagePct = Math.round((breakdown.artisanWage / totalVal) * 100);
+          const matPct = Math.round((breakdown.rawMaterials / totalVal) * 100);
+          const fundPct = Math.round((breakdown.villageDevelopmentFund / totalVal) * 100);
+          const logPct = Math.round((breakdown.shippingInsurance / totalVal) * 100);
+          const platPct = 100 - (wagePct + matPct + fundPct + logPct);
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-left">
-              <span className="w-3 h-3 bg-terracotta rounded-full inline-block mr-1.5" />
-              <span className="text-[10px] uppercase tracking-wider text-ivory/50">Artisan Wage (62%)</span>
-              <p className="text-lg font-bold font-mono text-white mt-1">₹{product.fairPriceBreakdown.artisanWage.toLocaleString()}</p>
-            </div>
-            
-            <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-left">
-              <span className="w-3 h-3 bg-gold-500 rounded-full inline-block mr-1.5" />
-              <span className="text-[10px] uppercase tracking-wider text-ivory/50">Materials (18%)</span>
-              <p className="text-lg font-bold font-mono text-white mt-1">₹{product.fairPriceBreakdown.rawMaterials.toLocaleString()}</p>
-            </div>
+          return (
+            <div className="space-y-6">
+              <div className="w-full h-8 bg-white/10 rounded-full flex overflow-hidden border border-white/5 shadow-inner">
+                <div className="h-full bg-terracotta transition-all duration-1000" style={{ width: `${wagePct}%` }} title={`Artisan Wages: ${wagePct}%`} />
+                <div className="h-full bg-gold-500 transition-all duration-1000" style={{ width: `${matPct}%` }} title={`Raw Materials: ${matPct}%`} />
+                <div className="h-full bg-emerald-600 transition-all duration-1000" style={{ width: `${fundPct}%` }} title={`Village Fund: ${fundPct}%`} />
+                <div className="h-full bg-indigo-600 transition-all duration-1000" style={{ width: `${logPct}%` }} title={`Logistics: ${logPct}%`} />
+                <div className="h-full bg-white/30 transition-all duration-1000" style={{ width: `${platPct}%` }} title={`Platform Fee: ${platPct}%`} />
+              </div>
 
-            <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-left">
-              <span className="w-3 h-3 bg-emerald-600 rounded-full inline-block mr-1.5" />
-              <span className="text-[10px] uppercase tracking-wider text-ivory/50">Village Fund (10%)</span>
-              <p className="text-lg font-bold font-mono text-white mt-1">₹{product.fairPriceBreakdown.villageDevelopmentFund.toLocaleString()}</p>
-            </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-left">
+                  <span className="w-3 h-3 bg-terracotta rounded-full inline-block mr-1.5" />
+                  <span className="text-[10px] uppercase tracking-wider text-ivory/50">Artisan Wage ({wagePct}%)</span>
+                  <p className="text-lg font-bold font-mono text-white mt-1">₹{breakdown.artisanWage.toLocaleString()}</p>
+                </div>
+                
+                <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-left">
+                  <span className="w-3 h-3 bg-gold-500 rounded-full inline-block mr-1.5" />
+                  <span className="text-[10px] uppercase tracking-wider text-ivory/50">Materials ({matPct}%)</span>
+                  <p className="text-lg font-bold font-mono text-white mt-1">₹{breakdown.rawMaterials.toLocaleString()}</p>
+                </div>
 
-            <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-left">
-              <span className="w-3 h-3 bg-indigo-600 rounded-full inline-block mr-1.5" />
-              <span className="text-[10px] uppercase tracking-wider text-ivory/50">Logistics & Ins. (6%)</span>
-              <p className="text-lg font-bold font-mono text-white mt-1">₹{product.fairPriceBreakdown.shippingInsurance.toLocaleString()}</p>
-            </div>
+                <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-left">
+                  <span className="w-3 h-3 bg-emerald-600 rounded-full inline-block mr-1.5" />
+                  <span className="text-[10px] uppercase tracking-wider text-ivory/50">Village Fund ({fundPct}%)</span>
+                  <p className="text-lg font-bold font-mono text-white mt-1">₹{breakdown.villageDevelopmentFund.toLocaleString()}</p>
+                </div>
 
-            <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-left col-span-2 md:col-span-1">
-              <span className="w-3 h-3 bg-white/30 rounded-full inline-block mr-1.5" />
-              <span className="text-[10px] uppercase tracking-wider text-ivory/50">Platform Fee (4%)</span>
-              <p className="text-lg font-bold font-mono text-white mt-1">₹{product.fairPriceBreakdown.platformFee.toLocaleString()}</p>
+                <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-left">
+                  <span className="w-3 h-3 bg-indigo-600 rounded-full inline-block mr-1.5" />
+                  <span className="text-[10px] uppercase tracking-wider text-ivory/50">Logistics & Ins. ({logPct}%)</span>
+                  <p className="text-lg font-bold font-mono text-white mt-1">₹{breakdown.shippingInsurance.toLocaleString()}</p>
+                </div>
+
+                <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-left col-span-2 md:col-span-1">
+                  <span className="w-3 h-3 bg-white/30 rounded-full inline-block mr-1.5" />
+                  <span className="text-[10px] uppercase tracking-wider text-ivory/50">Platform Fee ({platPct}%)</span>
+                  <p className="text-lg font-bold font-mono text-white mt-1">₹{breakdown.platformFee.toLocaleString()}</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
       </div>
 
       {/* Blockchain verify certificate widget */}
-      <div className="bg-white p-6 md:p-8 rounded-3xl border border-gold-500/10 shadow-premium flex flex-col md:flex-row gap-8 items-center justify-between terracotta-glow">
-        <div className="space-y-3 max-w-xl text-center md:text-left">
-          <div className="flex items-center justify-center md:justify-start gap-2">
-            <span className="p-1 rounded bg-gold-100 text-gold-600">
-              <Award className="w-4 h-4" />
-            </span>
-            <h4 className="text-xs uppercase tracking-widest text-gold-600 font-bold">Immutable Provenance Certificate</h4>
+      <div className="bg-white p-6 md:p-8 rounded-3xl border border-gold-500/10 shadow-premium space-y-6 terracotta-glow text-left">
+        <div className="flex flex-col lg:flex-row gap-8 items-stretch lg:items-center justify-between">
+          <div className="space-y-3 max-w-xl flex-1">
+            <div className="flex items-center gap-2">
+              <span className="p-1 rounded bg-gold-100 text-gold-600">
+                <Award className="w-4 h-4" />
+              </span>
+              <h4 className="text-xs uppercase tracking-widest text-gold-600 font-bold">Immutable Provenance Certificate</h4>
+            </div>
+            
+            <h3 className="title-serif text-2xl font-medium text-charcoal">
+              Blockchain Authenticity Registry
+            </h3>
+            
+            <div className="font-mono text-[10px] text-charcoal-700/60 space-y-1">
+              <p><strong>Ledger Contract:</strong> 0x47e1931a35d7c07a8ea78f579d4931a35d7c07a8</p>
+              <p><strong>Block Height:</strong> #{product.id.toUpperCase()}-METADATA-LEDGER</p>
+              <p><strong>Registry Certificate URI:</strong> <span className="underline hover:text-gold-500 cursor-pointer">{product.provenanceCertUrl}</span></p>
+            </div>
           </div>
-          
-          <h3 className="title-serif text-2xl font-medium text-charcoal">
-            Blockchain Authenticity Registry
-          </h3>
-          
-          <div className="font-mono text-[10px] text-charcoal/50 space-y-1">
-            <p><strong>Ledger Contract:</strong> 0x47e1...78f579</p>
-            <p><strong>Block Height:</strong> #HAATH-88402-METADATA</p>
-            <p><strong>Registry Certificate URI:</strong> <span className="underline hover:text-gold-500 cursor-pointer">{product.provenanceCertUrl}</span></p>
+
+          {/* Verification Check & Golden Seal displays */}
+          <div className="flex items-center gap-6 min-w-[240px] justify-center lg:justify-end">
+            {certVerified ? (
+              // Premium Spinning Golden Seal
+              <div className="flex flex-col items-center justify-center animate-scale-up">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gold-400 via-gold-500 to-terracotta p-[1.5px] shadow-glow-gold-lg animate-[spin_10s_linear_infinite] relative">
+                  <div className="w-full h-full rounded-full bg-charcoal flex items-center justify-center text-center p-2 border border-gold-400/30">
+                    <p className="text-[7px] uppercase font-bold tracking-widest text-gold-400 leading-[1.25]">HAATHSE SECURED</p>
+                  </div>
+                  {/* Floating shine dot */}
+                  <div className="absolute top-1 left-2 w-2 h-2 bg-white/50 rounded-full blur-[0.5px]" />
+                </div>
+                <p className="text-[8px] uppercase tracking-widest text-gold-600 font-bold mt-2">Registry Match Verified</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <button
+                  onClick={handleVerifyCert}
+                  disabled={isVerifyingCert}
+                  className={`px-6 py-3.5 text-xs uppercase tracking-widest font-semibold rounded-full border transition-all duration-300 shadow-premium ${
+                    isVerifyingCert 
+                      ? 'bg-gold-50 border-gold-500/20 text-gold-600 cursor-wait' 
+                      : 'bg-charcoal text-ivory border-charcoal hover:bg-charcoal/90 hover:scale-[1.02]'
+                  }`}
+                >
+                  {isVerifyingCert ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-3.5 h-3.5 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
+                      Auditing Blockchain...
+                    </span>
+                  ) : (
+                    'Verify Ledger Integrity'
+                  )}
+                </button>
+                
+                <p className="text-[8px] uppercase tracking-wider text-charcoal/40 font-semibold">
+                  SECURED DIRECT VIA ETHEREUM SMART CONTRACT
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Verification Check buttons */}
-        <div className="flex flex-col items-center gap-3">
-          <button
-            onClick={handleVerifyCert}
-            disabled={isVerifyingCert || certVerified}
-            className={`px-6 py-3.5 text-xs uppercase tracking-widest font-semibold rounded-full border transition-all duration-300 shadow-premium ${
-              certVerified 
-                ? 'bg-green-600 text-white border-green-500 flex items-center gap-1.5' 
-                : 'bg-charcoal text-ivory border-charcoal hover:bg-charcoal/90'
-            }`}
-          >
-            {isVerifyingCert ? (
-              <span className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Querying Blockchain Ledger...
-              </span>
-            ) : certVerified ? (
-              <span className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5" />
-                Registry Match Confirmed
-              </span>
-            ) : (
-              'Verify Ledger Integrity'
-            )}
-          </button>
-          
-          <p className="text-[8px] uppercase tracking-wider text-charcoal/40 font-semibold">
-            SECURED DIRECT VIA ETHEREUM SMART CONTRACT
-          </p>
-        </div>
+        {/* Verification scrolling console log */}
+        {(isVerifyingCert || verificationLogs.length > 0) && (
+          <div className="bg-charcoal p-4 rounded-xl border border-gold-500/15 font-mono text-[10px] text-green-400 space-y-1.5 max-h-36 overflow-y-auto shadow-inner w-full animate-slide-up">
+            <div className="flex items-center justify-between border-b border-white/5 pb-1.5 mb-1.5">
+              <span className="text-[8px] uppercase font-bold text-gold-400 tracking-wider">Provenance Verification Console</span>
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-ping" />
+            </div>
+            {verificationLogs.map((log, idx) => (
+              <p 
+                key={idx} 
+                className={`${idx === certStep && isVerifyingCert ? 'text-white animate-pulse' : idx === verificationLogs.length - 1 && certVerified ? 'text-green-400 font-bold' : 'text-green-500/70'}`}
+              >
+                &gt; {log}
+              </p>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

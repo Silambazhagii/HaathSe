@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, CheckCircle2, Cpu, Eye, Scale, Languages, FileCheck, Share2, ArrowRight } from 'lucide-react';
-import { aiPipelineSteps } from '../data/mockData';
+import { aiPipelineSteps, artisans } from '../data/mockData';
 import { t, translateField } from '../utils/translator';
 
 export default function AIPipeline({ activeProduct, onPipelineComplete, language }) {
@@ -8,6 +8,39 @@ export default function AIPipeline({ activeProduct, onPipelineComplete, language
   const [currentStepIndex, setCurrentStepIndex] = useState(-1);
   const [isAuditing, setIsAuditing] = useState(false);
   const [selectedStep, setSelectedStep] = useState(null);
+
+  const artisan = artisans.find(a => a.id === activeProduct.artisanId) || artisans[0];
+
+  // Dynamic details generator for execution nodes
+  const getDynamicStepDetails = (stepId) => {
+    const craftName = translateField(activeProduct, 'craft', 'EN');
+    const artisanName = artisan.name;
+    
+    if (stepId === 'step-1') {
+      return `Extracting 24 keyframes at 4K resolution. Running spatial CNN to isolate product geometry and surface boundaries.`;
+    }
+    if (stepId === 'step-2') {
+      return `Matches found: ${craftName} (${activeProduct.kritiCamScore}% confidence). Analysis: ${translateField(activeProduct, 'materialsAnalysis', 'EN')}`;
+    }
+    if (stepId === 'step-3') {
+      const breakdown = activeProduct.fairPriceBreakdown;
+      const totalBreakdown = breakdown.artisanWage + breakdown.rawMaterials + breakdown.villageDevelopmentFund + breakdown.shippingInsurance + breakdown.platformFee;
+      const wagePct = Math.round((breakdown.artisanWage / totalBreakdown) * 100);
+      return `Artisan direct cut set to ${wagePct}%. Recommended B2B Price: ₹${activeProduct.priceINR.toLocaleString()} ($${activeProduct.priceUSD} USD). Logistics margins audited.`;
+    }
+    if (stepId === 'step-4') {
+      const dialectName = activeProduct.id === 'prod-1' ? 'Rajasthani accented Hindi' : activeProduct.id === 'prod-2' ? 'Tamil regional dialect' : activeProduct.id === 'prod-3' ? 'Bastar Hindi dialect' : activeProduct.id === 'prod-5' ? 'Shivamogga Kannada dialect' : 'Regional dialect';
+      return `Transcribed: ${dialectName}. Generative AI crafting narrative of ${artisan.experienceYears} years of heritage of ${artisanName}.`;
+    }
+    if (stepId === 'step-5') {
+      const blockId = activeProduct.id === 'prod-1' ? '#HAATH-88402' : activeProduct.id === 'prod-5' ? '#HAATH-55024' : `#HAATH-${activeProduct.id.split('-')[1]}002`;
+      return `Hashing metadata... Certificate generated under block ${blockId}-METADATA. Registry transaction signed.`;
+    }
+    if (stepId === 'step-6') {
+      return `Catalog listing live at buyer.haathse.org/item/${activeProduct.id}. Notifications dispatched to global wholesale craft curators.`;
+    }
+    return '';
+  };
 
   // Initialize steps based on mock data
   useEffect(() => {
@@ -185,11 +218,11 @@ export default function AIPipeline({ activeProduct, onPipelineComplete, language
             <div className="relative pl-10 md:pl-16 space-y-10 relative z-10">
               
               {/* Connecting vertical axis */}
-              <div className="absolute left-[20px] md:left-[32px] top-6 bottom-6 w-[1px] bg-white/10" />
+              <div className="absolute left-[20px] md:left-[32px] top-6 bottom-6 w-[2px] bg-white/10" />
 
               {/* Animated Progress Path Overlay */}
               <div 
-                className="absolute left-[20px] md:left-[32px] top-6 w-[1px] bg-gradient-to-b from-gold-400 to-terracotta transition-all duration-1000" 
+                className="absolute left-[19px] md:left-[31px] top-6 w-[3px] bg-gradient-to-b from-gold-400 to-terracotta transition-all duration-1000 shadow-glow-terracotta rounded-full" 
                 style={{ 
                   height: currentStepIndex === -1 
                     ? '0%' 
@@ -280,7 +313,7 @@ export default function AIPipeline({ activeProduct, onPipelineComplete, language
               <div className="bg-charcoal p-4 rounded-xl border border-gold-500/15 font-mono text-[11px] text-green-400 space-y-2 max-h-36 overflow-y-auto shadow-inner">
                 <p className="opacity-40">[{new Date().toLocaleTimeString()}] INITIATING CYBERNETIC PIPELINE HANDSHAKE...</p>
                 <p className="opacity-60">[{new Date().toLocaleTimeString()}] CHECKING MOUNTED MODEL ARCHITECTURE...</p>
-                <p className="text-white">[{new Date().toLocaleTimeString()}] VERIFIED PARAMETER: {selectedStep.details}</p>
+                <p className="text-white">[{new Date().toLocaleTimeString()}] VERIFIED PARAMETER: {getDynamicStepDetails(selectedStep.id)}</p>
                 {selectedStep.status === 'completed' ? (
                   <p className="text-green-500">[{new Date().toLocaleTimeString()}] METADATA REGISTERED. TRANSACTION SIGNED BY MASTER PRIVATE KEY.</p>
                 ) : selectedStep.status === 'processing' ? (
@@ -309,7 +342,7 @@ export default function AIPipeline({ activeProduct, onPipelineComplete, language
             </p>
           </div>
           <button
-            onClick={() => onPipelineComplete('view-marketplace')}
+            onClick={() => onPipelineComplete('view-marketplace', activeProduct)}
             className="glow-border relative px-6 py-3 bg-charcoal text-ivory text-xs uppercase tracking-widest font-semibold rounded-full hover:bg-charcoal/90 transition-all duration-300 mx-auto flex items-center gap-2 shadow-premium"
           >
             Enter B2B Marketplace
