@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Image, Mic, CheckCheck, Sparkles, Volume2, ArrowRight, Play, Pause, Loader2, Zap } from 'lucide-react';
+import { Image, Mic, CheckCheck, Sparkles, Volume2, ArrowRight, Play, Pause, Loader2, Zap, Languages } from 'lucide-react';
 import { artisans, products } from '../data/mockData';
 import { uploadCraftImage, mapBackendProductToUI } from '../services/kriticamApi';
 import { t, translateField, speakText } from '../utils/translator';
-
-import { Image, Mic, CheckCheck, Sparkles, Volume2, ArrowRight, Play, Pause, Loader2, Zap, Languages } from 'lucide-react';
 
 export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLanguage }) {
   const [messages, setMessages] = useState([
