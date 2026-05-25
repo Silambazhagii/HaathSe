@@ -1,10 +1,18 @@
 import React, { useState, useMemo, useEffect } from 'react';
+<<<<<<< HEAD
 import { Search, SlidersHorizontal, CheckCircle2, Sparkles, MapPin, ArrowRight, Zap } from 'lucide-react';
 import { products, artisans } from '../data/mockData';
 import { subscribeToProducts, mapBackendProductToUI } from '../services/kriticamApi';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 export default function Marketplace({ onProductSelect }) {
+=======
+import { Search, SlidersHorizontal, CheckCircle2, Sparkles, MapPin, ArrowRight, Play, Pause, Volume2 } from 'lucide-react';
+import { artisans } from '../data/mockData';
+import { t, translateField, speakText } from '../utils/translator';
+
+export default function Marketplace({ onProductSelect, language, lowBandwidth, products }) {
+>>>>>>> d1704c7 (updated)
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedState, setSelectedState] = useState('All');
@@ -26,8 +34,41 @@ export default function Marketplace({ onProductSelect }) {
 
   // Extract unique categories & states for filter options
   const categories = ['All', 'Home Decor', 'Apparel'];
-  const states = ['All', 'Rajasthan', 'Tamil Nadu', 'Chhattisgarh', 'Jammu & Kashmir'];
+  const states = ['All', 'Rajasthan', 'Tamil Nadu', 'Chhattisgarh', 'Jammu & Kashmir', 'Karnataka'];
 
+<<<<<<< HEAD
+=======
+  // Handle play voice snippet from card
+  const handlePlayVoice = (e, prod) => {
+    e.stopPropagation(); // Prevent card click
+    
+    if (playingVoiceId === prod.id) {
+      window.speechSynthesis.cancel();
+      setPlayingVoiceId(null);
+      return;
+    }
+
+    const artisan = artisans.find(a => a.id === prod.artisanId);
+    if (!artisan) return;
+
+    // Detect artisan dialect language
+    const artisanLang = 
+      prod.id === "prod-1" ? "HI" : 
+      prod.id === "prod-2" ? "TA" : 
+      prod.id === "prod-3" ? "HI" : 
+      prod.id === "prod-5" ? "KN" : "EN";
+    const voiceText = translateField(artisan, 'voiceTranscript', artisanLang);
+
+    setPlayingVoiceId(prod.id);
+    speakText(
+      voiceText,
+      artisanLang,
+      () => setPlayingVoiceId(prod.id),
+      () => setPlayingVoiceId(null)
+    );
+  };
+
+>>>>>>> d1704c7 (updated)
   // Filter & Sort Products
   const filteredProducts = useMemo(() => {
     return products
@@ -55,7 +96,11 @@ export default function Marketplace({ onProductSelect }) {
         if (sortBy === 'authenticity') return b.kritiCamScore - a.kritiCamScore;
         return 0;
       });
+<<<<<<< HEAD
   }, [searchQuery, selectedCategory, selectedState, sortBy]);
+=======
+  }, [products, searchQuery, selectedCategory, selectedState, sortBy, language]);
+>>>>>>> d1704c7 (updated)
 
   return (
     <div className="w-full space-y-12">
@@ -215,7 +260,11 @@ export default function Marketplace({ onProductSelect }) {
               <div
                 key={prod.id}
                 onClick={() => onProductSelect(prod)}
-                className="group cursor-pointer bg-white rounded-3xl border border-gold-500/10 shadow-premium overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-luxury flex flex-col justify-between"
+                className={`group cursor-pointer bg-white rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-luxury flex flex-col justify-between relative ${
+                  prod.id === 'prod-5'
+                    ? 'border-2 border-terracotta shadow-[0_0_15px_rgba(212,91,52,0.3)] animate-pulse-subtle'
+                    : 'border border-gold-500/10 shadow-premium'
+                }`}
               >
                 
                 {/* Cinematic Image Container */}
@@ -226,12 +275,22 @@ export default function Marketplace({ onProductSelect }) {
                     className="zoom-image w-full h-full object-cover"
                   />
                   
+<<<<<<< HEAD
                   {/* Floating Authenticity Badge */}
                   <div className="absolute top-4 left-4 flex gap-1.5">
+=======
+                  {/* Floating AI Verification Badge */}
+                  <div className="absolute top-4 left-4 flex flex-wrap gap-1.5 z-10">
+>>>>>>> d1704c7 (updated)
                     <span className="flex items-center gap-1 bg-charcoal/90 text-ivory text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full border border-white/10 shadow-premium">
                       <Sparkles className="w-3 h-3 text-gold-400" />
                       {prod.kritiCamScore}% AI Audit
                     </span>
+                    {prod.id === 'prod-5' && (
+                      <span className="flex items-center gap-1 bg-terracotta text-white text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full border border-white/10 shadow-glow-terracotta animate-pulse">
+                        Just Onboarded
+                      </span>
+                    )}
                   </div>
 
                   {/* Regional Label */}

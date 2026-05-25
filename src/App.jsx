@@ -7,14 +7,67 @@ import AIPipeline from './components/AIPipeline';
 import Marketplace from './components/Marketplace';
 import ProductDetail from './components/ProductDetail';
 import ImpactDashboard from './components/ImpactDashboard';
+<<<<<<< HEAD
 import BackendStatus from './components/BackendStatus';
 import { products, artisans } from './data/mockData';
 import { mapBackendProductToUI } from './services/kriticamApi';
 import { Sparkles, ArrowRight, UploadCloud, Fingerprint, FileText, CheckCircle2, Star, Quote } from 'lucide-react';
+=======
+import AIAssistant from './components/AIAssistant';
+import { products } from './data/mockData';
+import { t, translateField } from './utils/translator';
+import { Sparkles, ArrowRight, UploadCloud, Fingerprint, FileText, CheckCircle2, Quote } from 'lucide-react';
+import { useEffect } from 'react';
+
+// Premium interactive counter component
+const AnimatedCounter = ({ value, duration = 1800, prefix = "", suffix = "", decimals = 0 }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTime = null;
+    const targetValue = value * Math.pow(10, decimals);
+    
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const current = progress * targetValue;
+      setCount(current / Math.pow(10, decimals));
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }, [value, decimals, duration]);
+
+  return (
+    <span>
+      {prefix}
+      {count.toLocaleString(undefined, { 
+        minimumFractionDigits: decimals, 
+        maximumFractionDigits: decimals 
+      })}
+      {suffix}
+    </span>
+  );
+};
+>>>>>>> d1704c7 (updated)
 
 export default function App() {
   const [activeScreen, setActiveScreen] = useState('landing'); // 'landing', 'whatsapp', 'pipeline', 'marketplace', 'product-detail', 'dashboard'
   const [activeProduct, setActiveProduct] = useState(products[0]);
+<<<<<<< HEAD
+=======
+  
+  // Dynamic Catalog State - starts with default 4 products
+  const [productList, setProductList] = useState(products.slice(0, 4));
+  
+  // Accessibility Lifted States
+  const [language, setLanguage] = useState('EN'); 
+  const [ruralMode, setRuralMode] = useState(false);
+  const [lowBandwidth, setLowBandwidth] = useState(false);
+  const [largeText, setLargeText] = useState(false);
+>>>>>>> d1704c7 (updated)
 
   // Navigate to pipeline with uploaded product from WhatsApp simulator
   // Accepts both mock products AND live backend responses (mapped to UI schema)
@@ -25,8 +78,19 @@ export default function App() {
     setActiveScreen('pipeline');
   };
 
+<<<<<<< HEAD
   // Pipeline verification completed
   const handlePipelineComplete = (nextAction) => {
+=======
+  const handlePipelineComplete = (nextAction, product) => {
+    if (product) {
+      setProductList(prev => {
+        // Prepend new craft if not already present
+        if (prev.some(p => p.id === product.id)) return prev;
+        return [product, ...prev];
+      });
+    }
+>>>>>>> d1704c7 (updated)
     if (nextAction === 'view-marketplace') {
       setActiveScreen('marketplace');
     }
@@ -41,7 +105,19 @@ export default function App() {
     <div className="min-h-screen bg-ivory text-charcoal flex flex-col justify-between">
       
       {/* Global Navigation Header */}
+<<<<<<< HEAD
       <Navbar activeScreen={activeScreen} setActiveScreen={setActiveScreen} />
+=======
+      <Navbar 
+        activeScreen={activeScreen} 
+        setActiveScreen={setActiveScreen} 
+        language={language}
+        setLanguage={setLanguage}
+        ruralMode={ruralMode}
+        lowBandwidth={lowBandwidth}
+        largeText={largeText}
+      />
+>>>>>>> d1704c7 (updated)
 
       {/* Main Screen Layout Routing */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-6 md:px-12 pt-28 pb-20">
@@ -52,10 +128,15 @@ export default function App() {
             
             {/* Cinematic Luxury Hero Section */}
             <section className="relative grid-bg py-16 md:py-24 text-center space-y-8 overflow-hidden rounded-3xl border border-gold-500/10">
+<<<<<<< HEAD
               
               {/* Soft decorative background glow circles */}
               <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-gold-400/5 filter blur-3xl pointer-events-none" />
               <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-80 h-80 rounded-full bg-terracotta-500/5 filter blur-3xl pointer-events-none" />
+=======
+              <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-gold-400/10 filter blur-3xl pointer-events-none animate-blob-1" />
+              <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-terracotta-500/10 filter blur-3xl pointer-events-none animate-blob-2" />
+>>>>>>> d1704c7 (updated)
 
               <div className="space-y-4 max-w-3xl mx-auto px-4">
                 <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gold-100 border border-gold-500/20 text-[10px] tracking-widest text-gold-600 font-bold uppercase animate-pulse-subtle">
@@ -93,19 +174,27 @@ export default function App() {
               {/* Key Stats Row */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-16 max-w-5xl mx-auto px-6 border-t border-gold-500/10">
                 <div className="text-center">
-                  <p className="text-3xl font-bold font-mono text-charcoal">1,240+</p>
+                  <p className="text-3xl font-bold font-mono text-charcoal">
+                    <AnimatedCounter value={1240} suffix="+" />
+                  </p>
                   <p className="text-[10px] uppercase tracking-widest text-charcoal-700/50 mt-1 font-semibold">Weavers & Potters</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-3xl font-bold font-mono text-charcoal">₹4.28 Cr</p>
+                  <p className="text-3xl font-bold font-mono text-charcoal">
+                    <AnimatedCounter value={4.28} prefix="₹" suffix=" Cr" decimals={2} />
+                  </p>
                   <p className="text-[10px] uppercase tracking-widest text-charcoal-700/50 mt-1 font-semibold">Wholesale Revenue</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-3xl font-bold font-mono text-terracotta">+154%</p>
+                  <p className="text-3xl font-bold font-mono text-terracotta">
+                    <AnimatedCounter value={154} prefix="+" suffix="%" />
+                  </p>
                   <p className="text-[10px] uppercase tracking-widest text-charcoal-700/50 mt-1 font-semibold">Artisan Income Rise</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-3xl font-bold font-mono text-charcoal">98.1%</p>
+                  <p className="text-3xl font-bold font-mono text-charcoal">
+                    <AnimatedCounter value={98.1} suffix="%" decimals={1} />
+                  </p>
                   <p className="text-[10px] uppercase tracking-widest text-charcoal-700/50 mt-1 font-semibold">Audit Integrity</p>
                 </div>
               </div>
@@ -171,7 +260,7 @@ export default function App() {
 
               {/* Mini Catalog Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {products.slice(0, 4).map((prod) => (
+                {productList.slice(0, 4).map((prod) => (
                   <div
                     key={prod.id}
                     onClick={() => handleProductSelect(prod)}
@@ -247,7 +336,11 @@ export default function App() {
 
         {/* B2B MARKETPLACE SCREEN */}
         {activeScreen === 'marketplace' && (
+<<<<<<< HEAD
           <Marketplace onProductSelect={handleProductSelect} />
+=======
+          <Marketplace onProductSelect={handleProductSelect} language={language} lowBandwidth={lowBandwidth} products={productList} />
+>>>>>>> d1704c7 (updated)
         )}
 
         {/* PRODUCT DETAIL Storytelling SCREEN */}

@@ -43,7 +43,49 @@ export default function WhatsAppMock({ onUploadComplete }) {
     setMessages((prev) => [...prev, msg]);
   };
 
+<<<<<<< HEAD
   // Simulate Artisan uploading Blue Pottery (Vase)
+=======
+  // Simulate dialect speech playback
+  const handlePlayVoice = (msg) => {
+    if (playingVoiceId === msg.id) {
+      window.speechSynthesis.cancel();
+      setPlayingVoiceId(null);
+      return;
+    }
+    
+    setPlayingVoiceId(msg.id);
+    speakText(
+      msg.transcriptRaw,
+      msg.artisanLang, 
+      () => setPlayingVoiceId(msg.id),
+      () => setPlayingVoiceId(null)
+    );
+  };
+
+  // Play standard message or AI message text aloud
+  const handlePlayTextMsg = (msg) => {
+    if (playingVoiceId === msg.id) {
+      window.speechSynthesis.cancel();
+      setPlayingVoiceId(null);
+      return;
+    }
+
+    const textToSpeak = msg.sender === 'system'
+      ? (language === 'HI' ? msg.textHI : msg.textEN) 
+      : msg.text;
+
+    setPlayingVoiceId(msg.id);
+    speakText(
+      textToSpeak,
+      language,
+      () => setPlayingVoiceId(msg.id),
+      () => setPlayingVoiceId(null)
+    );
+  };
+
+  // Simulate Artisan uploading selected craft
+>>>>>>> d1704c7 (updated)
   const triggerSimulation = (selectedProdId) => {
     const prod = products.find(p => p.id === selectedProdId) || products[0];
     const artisan = artisans.find(a => a.id === prod.artisanId);
@@ -65,6 +107,18 @@ export default function WhatsAppMock({ onUploadComplete }) {
       // Let it record for 3 seconds
       setTimeout(() => {
         setIsRecording(false);
+<<<<<<< HEAD
+=======
+        
+        // Detect artisan's default regional language
+        const artisanLang = 
+          prod.id === "prod-1" ? "HI" : 
+          prod.id === "prod-2" ? "TA" : 
+          prod.id === "prod-3" ? "HI" : 
+          prod.id === "prod-5" ? "KN" : "EN";
+        const voiceText = translateField(artisan, 'voiceTranscript', artisanLang);
+
+>>>>>>> d1704c7 (updated)
         // Add voice message
         addMessage({
           id: Date.now() + 2,
@@ -81,7 +135,27 @@ export default function WhatsAppMock({ onUploadComplete }) {
           
           setTimeout(() => {
             setIsTyping(false);
+<<<<<<< HEAD
             // AI Response with detected details
+=======
+            
+            // Build AI translated responses containing regional specifications
+            const craftText = translateField(prod, 'craft', language);
+            const statusText = translateField(prod, 'authenticityStatus', language);
+
+            const aiResponseDict = {
+              EN: `KritiCam AI identified your craft: ${craftText}! ✨\n\n• Artisan: ${artisan.name}\n• Location: ${artisan.village}, ${artisan.state}\n• Estimated Value: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• Integrity: ${prod.kritiCamScore}%\n• Status: ${statusText}\n\nWhisper AI translated the dialect voice note. Listing details generated. Ready to publish?`,
+              HI: `KritiCam AI ने कलाकृति पहचान ली है: ${craftText}! ✨\n\n• कारीगर: ${artisan.name}\n• स्थान: ${artisan.village}, ${artisan.state}\n• अनुमानित मूल्य: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• शुद्धता: ${prod.kritiCamScore}%\n• स्थिति: ${statusText}\n\nविस्पर एआई ने आपकी बोली का अनुवाद कर दिया है। उत्पाद सूची तैयार है। क्या आप इसे प्रकाशित करना चाहते हैं?`,
+              TA: `கிருடிகேம் AI உங்கள் தயாரிப்பை அடையாளம் கண்டுள்ளது: ${craftText}! ✨\n\n• கைவினைஞர்: ${artisan.name}\n• இடம்: ${artisan.village}, ${artisan.state}\n• மதிப்பு: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• நம்பகத்தன்மை: ${prod.kritiCamScore}%\n• நிலை: ${statusText}\n\nவிஸ்பர் AI உங்கள் வட்டாரப் பேச்சு மொழியை மொழிபெயர்த்துள்ளது. விவரங்கள் தயாராக உள்ளன. வெளியிடலாமா?`,
+              BN: `কৃতি ক্যাম AI আপনার শিল্প সনাক্ত করেছে: ${craftText}! ✨\n\n• কারিগর: ${artisan.name}\n• স্থান: ${artisan.village}, ${artisan.state}\n• আনুমানিক মূল্য: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• শুদ্ধতা: ${prod.kritiCamScore}%\n• অবস্থা: ${statusText}\n\nহুইস্পার এআই উপভাষার ভয়েস নোট অনুবাদ করেছে। বিবরণ প্রস্তুত। প্রকাশ করতে চান?`,
+              KN: `ಕೃಟಿಕಾಮ್ ಎಐ ನಿಮ್ಮ ಕಲಾಕೃತಿಯನ್ನು ಗುರುತಿಸಿದೆ: ${craftText}! ✨\n\n• ಕುಶಲಕರ್ಮಿ: ${artisan.name}\n• ಸ್ಥಳ: ${artisan.village}, ${artisan.state}\n• ಅಂದಾಜು ಮೌಲ್ಯ: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• ನಿಖರತೆ: ${prod.kritiCamScore}%\n• ಸ್ಥಿತಿ: ${statusText}\n\nವಿಸ್ಪರ್ ಎಐ ಪ್ರಾದೇಶಿಕ ಧ್ವನಿಯನ್ನು ಭಾಷಾಂತರಿಸಿದೆ. ವಿವರಗಳು ಸಿದ್ಧವಾಗಿವೆ. ಪ್ರಕಟಿಸಲು ಸಿದ್ಧವೇ?`,
+              MR: `क्रिटिकॅम एआय ने तुमची कलाकृती ओळखली आहे: ${craftText}! ✨\n\n• कारागीर: ${artisan.name}\n• ठिकाण: ${artisan.village}, ${artisan.state}\n• अंदाजे किंमत: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• शुद्धता: ${prod.kritiCamScore}%\n• स्थिती: ${statusText}\n\nविस्पर एआय ने बोली भाषेचे भाषांतर केले आहे. उत्पादन सूची तयार आहे. प्रकाशित करू इच्छिता?`,
+              TE: `కృతిక్యామ్ AI మీ కళను గుర్తించింది: ${craftText}! ✨\n\n• కళాకారుడు: ${artisan.name}\n• ప్రాంతం: ${artisan.village}, ${artisan.state}\n• అంచనా విలువ: ₹${prod.priceINR.toLocaleString()} ($${prod.priceUSD})\n• ఖచ్చితత్వం: ${prod.kritiCamScore}%\n• స్థితి: ${statusText}\n\nవిస్పర్ AI మీ స్థానిక సంభాషణను అనువదించింది. వివరాలు సిద్ధంగా ఉన్నాయి. ప్రచురించడానికి సిద్ధమా?`
+            };
+
+            const aiResponseText = aiResponseDict[language] || aiResponseDict['EN'];
+
+>>>>>>> d1704c7 (updated)
             addMessage({
               id: Date.now() + 3,
               sender: "ai",
@@ -219,6 +293,7 @@ export default function WhatsAppMock({ onUploadComplete }) {
           <div className="space-y-4">
             <p className="text-[10px] uppercase tracking-widest text-gold-500 font-semibold">Or Select Demo Craft to Simulate</p>
             
+<<<<<<< HEAD
             {products.map((prod) => (
               <button
                 key={prod.id}
@@ -240,6 +315,47 @@ export default function WhatsAppMock({ onUploadComplete }) {
                 <ArrowRight className="w-4 h-4 text-gold-500 group-hover:translate-x-1 transition-transform" />
               </button>
             ))}
+=======
+            {products.map((prod) => {
+              const art = artisans.find(a => a.id === prod.artisanId);
+              const isSelected = uploadedProduct?.id === prod.id;
+              
+              return (
+                <button
+                  key={prod.id}
+                  onClick={() => triggerSimulation(prod.id)}
+                  disabled={isRecording || isTyping}
+                  className={`w-full flex items-center justify-between p-3 bg-white/5 rounded-xl border transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed group text-left relative ${
+                    isSelected ? 'border-terracotta bg-white/10 shadow-[0_0_12px_rgba(212,91,52,0.35)]' : 'border-white/10 hover:bg-white/10 hover:border-gold-500/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <img 
+                      src={prod.image} 
+                      alt={translateField(prod, 'name', language)} 
+                      className="w-10 h-10 rounded-lg object-cover border border-white/15"
+                    />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h5 className="text-xs font-semibold text-white tracking-wide">
+                          {translateField(prod, 'craft', language)}
+                        </h5>
+                        {prod.id === 'prod-5' && (
+                          <span className="bg-terracotta text-white text-[7px] uppercase tracking-widest px-1.5 py-0.2 rounded font-bold border border-white/10 shadow-premium animate-pulse">
+                            Demo Target
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-ivory/50">
+                        {art?.name} ({art?.village})
+                      </p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-gold-500 group-hover:translate-x-1 transition-transform animate-pulse-subtle" />
+                </button>
+              );
+            })}
+>>>>>>> d1704c7 (updated)
           </div>
         </div>
 
@@ -317,9 +433,41 @@ export default function WhatsAppMock({ onUploadComplete }) {
 
                   {/* Voice Note Waves */}
                   {msg.isVoiceNote && (
+<<<<<<< HEAD
                     <div className="flex items-center gap-3.5 py-1 min-w-[200px]">
                       <div className="w-8 h-8 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-600">
                         <Play className="w-3.5 h-3.5 fill-teal-600" />
+=======
+                    <div className="space-y-2 min-w-[210px]">
+                      <div className="flex items-center gap-3.5 py-1">
+                        <button 
+                          onClick={() => handlePlayVoice(msg)}
+                          className="w-8 h-8 rounded-full bg-teal-500/15 text-teal-600 flex items-center justify-center hover:bg-teal-500/25 transition-colors"
+                        >
+                          {playingVoiceId === msg.id ? (
+                            <Pause className="w-3.5 h-3.5 fill-teal-600" />
+                          ) : (
+                            <Play className="w-3.5 h-3.5 fill-teal-600 ml-0.5" />
+                          )}
+                        </button>
+                        
+                        {/* Interactive Waveform SVG */}
+                        <div className="flex-1 flex items-end gap-0.5 h-6">
+                          {[30, 60, 85, 45, 75, 95, 35, 65, 85, 55, 45, 65, 30, 75, 40].map((h, i) => (
+                            <span 
+                              key={i} 
+                              style={{ 
+                                height: `${h}%`,
+                                animationDelay: `${i * 35}ms`
+                              }} 
+                              className={`flex-1 bg-teal-500 rounded-full min-w-[2.5px] transition-all duration-300 ${
+                                playingVoiceId === msg.id ? 'animate-waveform-bar' : ''
+                              }`} 
+                            />
+                          ))}
+                        </div>
+                        <span className="text-[10px] text-charcoal-700/60 font-semibold">{msg.voiceDuration}</span>
+>>>>>>> d1704c7 (updated)
                       </div>
                       <div className="flex-1 flex items-end gap-0.5 h-6">
                         {/* Fake audio wave bars */}
@@ -335,11 +483,42 @@ export default function WhatsAppMock({ onUploadComplete }) {
                     </div>
                   )}
 
+<<<<<<< HEAD
                   {/* Text Content */}
                   {!msg.isVoiceNote && (
                     <p className="whitespace-pre-line leading-relaxed font-sans">
                       {language === 'HI' ? msg.text : (msg.textEn || msg.text)}
                     </p>
+=======
+                  {/* Standard Text Message */}
+                  {!msg.isVoiceNote && !msg.mediaUrl && (
+                    <div className="space-y-2">
+                      <p className="whitespace-pre-line leading-relaxed font-sans font-light">
+                        {isSystem 
+                          ? (language === 'HI' ? msg.textHI : msg.textEN)
+                          : msg.text}
+                      </p>
+                      
+                      {/* Audio voice guide reading for zero-literacy */}
+                      {(isAI || isSystem) && (
+                        <button 
+                          onClick={() => handlePlayTextMsg(msg)}
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] uppercase tracking-wider font-semibold transition-all border ${
+                            playingVoiceId === msg.id 
+                              ? 'bg-terracotta border-terracotta text-white shadow-glow-terracotta animate-pulse' 
+                              : 'bg-white/10 border-white/10 text-ivory/80 hover:bg-white/20 hover:text-white'
+                          }`}
+                        >
+                          {playingVoiceId === msg.id ? (
+                            <Pause className="w-2.5 h-2.5 fill-white" />
+                          ) : (
+                            <Volume2 className="w-2.5 h-2.5" />
+                          )}
+                          <span>{playingVoiceId === msg.id ? 'Stop Guide' : 'Voice Guide'}</span>
+                        </button>
+                      )}
+                    </div>
+>>>>>>> d1704c7 (updated)
                   )}
 
                   {/* Transcript box for voice notes */}
