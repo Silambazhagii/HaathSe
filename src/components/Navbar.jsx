@@ -29,11 +29,7 @@ export default function Navbar({ activeScreen, setActiveScreen, language, setLan
   const languagesList = [
     { code: 'EN', name: 'English' },
     { code: 'HI', name: 'हिन्दी' },
-    { code: 'TA', name: 'தமிழ்' },
-    { code: 'BN', name: 'বাংলা' },
-    { code: 'KN', name: 'ಕನ್ನಡ' },
-    { code: 'MR', name: 'मराठी' },
-    { code: 'TE', name: 'తెలుగు' }
+    { code: 'KN', name: 'ಕನ್ನಡ' }
   ];
 
   const getActiveLangName = () => {

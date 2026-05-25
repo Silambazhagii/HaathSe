@@ -15,6 +15,7 @@ import { Sparkles, ArrowRight, UploadCloud, Fingerprint, FileText, CheckCircle2,
 export default function App() {
   const [activeScreen, setActiveScreen] = useState('landing'); // 'landing', 'whatsapp', 'pipeline', 'marketplace', 'product-detail', 'dashboard'
   const [activeProduct, setActiveProduct] = useState(products[0]);
+  const [language, setLanguage] = useState('HI'); // Global language state: 'HI' or 'EN'
 
   // Navigate to pipeline with uploaded product from WhatsApp simulator
   // Accepts both mock products AND live backend responses (mapped to UI schema)
@@ -41,7 +42,7 @@ export default function App() {
     <div className="min-h-screen bg-ivory text-charcoal flex flex-col justify-between">
       
       {/* Global Navigation Header */}
-      <Navbar activeScreen={activeScreen} setActiveScreen={setActiveScreen} />
+      <Navbar activeScreen={activeScreen} setActiveScreen={setActiveScreen} language={language} setLanguage={setLanguage} />
 
       {/* Main Screen Layout Routing */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-6 md:px-12 pt-28 pb-20">
@@ -49,67 +50,53 @@ export default function App() {
         {/* LANDING PAGE SCREEN */}
         {activeScreen === 'landing' && (
           <div className="space-y-24">
-            
-            {/* Cinematic Luxury Hero Section */}
-            <section className="relative grid-bg py-16 md:py-24 text-center space-y-8 overflow-hidden rounded-3xl border border-gold-500/10">
-              
-              {/* Soft decorative background glow circles */}
-              <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-gold-400/5 filter blur-3xl pointer-events-none" />
-              <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-80 h-80 rounded-full bg-terracotta-500/5 filter blur-3xl pointer-events-none" />
-
-              <div className="space-y-4 max-w-3xl mx-auto px-4">
-                <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gold-100 border border-gold-500/20 text-[10px] tracking-widest text-gold-600 font-bold uppercase animate-pulse-subtle">
-                  <Sparkles className="w-3.5 h-3.5 text-terracotta" />
-                  Preserving Heritage via AI Provenance
-                </span>
-                
-                <h1 className="title-serif text-5xl md:text-7xl font-light text-charcoal tracking-tight leading-[1.05]">
-                  From Rural Hands <br />
-                  <span className="italic font-normal text-terracotta">to Global Galleries</span>
-                </h1>
-                
-                <p className="text-xs md:text-sm text-charcoal-700/60 leading-relaxed font-sans max-w-xl mx-auto font-light pt-2">
-                  HaathSe empowers traditional Indian artisans to sell globally using zero-literacy WhatsApp onboarding, computer vision material analysis, and blockchain provenance storytelling.
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap justify-center gap-4 relative z-10 pt-4">
-                <button
-                  onClick={() => setActiveScreen('marketplace')}
-                  className="px-7 py-3.5 rounded-full bg-charcoal text-ivory text-xs uppercase tracking-widest font-semibold hover:bg-charcoal/90 transition-all duration-300 shadow-premium flex items-center gap-2"
-                >
-                  Explore Collection
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => setActiveScreen('whatsapp')}
-                  className="px-7 py-3.5 rounded-full border border-gold-500/30 text-charcoal text-xs uppercase tracking-widest font-semibold hover:bg-gold-100 hover:border-gold-500 transition-all duration-300 bg-white"
-                >
-                  Onboard Artisan
-                </button>
-              </div>
-
-              {/* Key Stats Row */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-16 max-w-5xl mx-auto px-6 border-t border-gold-500/10">
-                <div className="text-center">
-                  <p className="text-3xl font-bold font-mono text-charcoal">1,240+</p>
-                  <p className="text-[10px] uppercase tracking-widest text-charcoal-700/50 mt-1 font-semibold">Weavers & Potters</p>
+            {/* Minimal Role Gateway */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch pt-4">
+              {/* Artisan Portal Card */}
+              <div 
+                onClick={() => setActiveScreen('whatsapp')}
+                className="group cursor-pointer bg-terracotta/5 border-2 border-terracotta/20 hover:border-terracotta hover:bg-terracotta/10 p-8 rounded-3xl transition-all duration-500 flex flex-col justify-between text-left space-y-8 min-h-[320px] relative overflow-hidden"
+              >
+                <div className="space-y-4">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-terracotta/10 text-[10px] tracking-widest text-terracotta font-bold uppercase">
+                    मैं कलाकृति बनाती हूँ / For Artisans
+                  </span>
+                  <h2 className="title-serif text-3xl md:text-4xl text-charcoal font-medium leading-tight">
+                    अपनी कला बेचें <br />
+                    <span className="text-terracotta italic font-normal">Sell Your Craft</span>
+                  </h2>
+                  <p className="text-xs text-charcoal-700/60 leading-relaxed font-sans font-light max-w-sm">
+                    व्हाट्सएप पर सिर्फ फोटो भेजें और बोलकर अपनी कलाकृति को पूरी दुनिया के बाजारों में बेचें। 
+                    (Simply send photos and speak on WhatsApp to showcase and sell to global luxury B2B buyers).
+                  </p>
                 </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold font-mono text-charcoal">₹4.28 Cr</p>
-                  <p className="text-[10px] uppercase tracking-widest text-charcoal-700/50 mt-1 font-semibold">Wholesale Revenue</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold font-mono text-terracotta">+154%</p>
-                  <p className="text-[10px] uppercase tracking-widest text-charcoal-700/50 mt-1 font-semibold">Artisan Income Rise</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold font-mono text-charcoal">98.1%</p>
-                  <p className="text-[10px] uppercase tracking-widest text-charcoal-700/50 mt-1 font-semibold">Audit Integrity</p>
+                <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-semibold text-terracotta group-hover:translate-x-1 transition-transform pt-4">
+                  शुरू करें / Enter Studio <ArrowRight className="w-4 h-4" />
                 </div>
               </div>
-            </section>
+
+              {/* Buyer Portal Card */}
+              <div 
+                onClick={() => setActiveScreen('marketplace')}
+                className="group cursor-pointer bg-charcoal/5 border-2 border-charcoal/20 hover:border-charcoal hover:bg-charcoal/10 p-8 rounded-3xl transition-all duration-500 flex flex-col justify-between text-left space-y-8 min-h-[320px] relative overflow-hidden"
+              >
+                <div className="space-y-4">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-charcoal/10 text-[10px] tracking-widest text-charcoal font-bold uppercase">
+                    Exhibitions / For Buyers
+                  </span>
+                  <h2 className="title-serif text-3xl md:text-4xl text-charcoal font-medium leading-tight">
+                    संग्रह देखें <br />
+                    <span className="italic font-normal text-gold-600">Buy Authentic Art</span>
+                  </h2>
+                  <p className="text-xs text-charcoal-700/60 leading-relaxed font-sans font-light max-w-sm">
+                    Acquire certified, museum-grade Indian heritage crafts directly from rural clusters with audited machine provenance ledgers.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-semibold text-charcoal group-hover:translate-x-1 transition-transform pt-4">
+                  संग्रह देखें / Browse Gallery <ArrowRight className="w-4 h-4" />
+                </div>
+              </div>
+            </div>
 
             {/* How It Works Section */}
             <section className="space-y-12">
@@ -237,7 +224,7 @@ export default function App() {
 
         {/* WHATSAPP SIMULATOR SCREEN */}
         {activeScreen === 'whatsapp' && (
-          <WhatsAppMock onUploadComplete={handleWhatsAppUploadComplete} />
+          <WhatsAppMock onUploadComplete={handleWhatsAppUploadComplete} language={language} setLanguage={setLanguage} />
         )}
 
         {/* AI PIPELINE VISUALIZATION SCREEN */}

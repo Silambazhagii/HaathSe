@@ -3,7 +3,7 @@ import { Send, Image, Mic, CheckCheck, Sparkles, Languages, Volume2, ArrowRight,
 import { artisans, products } from '../data/mockData';
 import { uploadCraftImage, mapBackendProductToUI } from '../services/kriticamApi';
 
-export default function WhatsAppMock({ onUploadComplete }) {
+export default function WhatsAppMock({ onUploadComplete, language = 'HI', setLanguage }) {
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -17,10 +17,20 @@ export default function WhatsAppMock({ onUploadComplete }) {
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [uploadedProduct, setUploadedProduct] = useState(null);
-  const [language, setLanguage] = useState('HI'); // 'HI' or 'EN'
   const [isLiveUploading, setIsLiveUploading] = useState(false); // Real API upload state
   const fileInputRef = useRef(null);
   const chatEndRef = useRef(null);
+
+  const speakInstructions = () => {
+    const text = language === 'HI' 
+      ? "नमस्ते! अपनी कलाकृति बेचने के लिए, 'अपलोड कलाकृति फोटो' बटन दबाएं और एक सुंदर फोटो चुनें। या फिर नीचे दिए गए डेमो कलाकृतियों में से किसी एक को चुनकर प्रक्रिया का अनुभव करें।"
+      : "Hello! To sell your artwork, press the 'Upload Real Craft Photo' button and select a beautiful photo. Or, select one of the demo crafts below to experience the onboarding flow.";
+    
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = language === 'HI' ? 'hi-IN' : 'en-US';
+    window.speechSynthesis.speak(utterance);
+  };
 
   // Simulated recording timer
   useEffect(() => {
@@ -169,16 +179,27 @@ export default function WhatsAppMock({ onUploadComplete }) {
     <div className="w-full max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch bg-ivory p-4 md:p-8 rounded-3xl border border-gold-500/10 shadow-premium">
       
       {/* Simulation Controls Panel */}
-      <div className="lg:col-span-5 flex flex-col justify-between p-6 bg-charcoal rounded-2xl border border-white/5 text-ivory">
+      <div className="lg:col-span-5 flex flex-col justify-between p-6 bg-charcoal rounded-2xl border border-white/5 text-ivory text-left">
         <div>
-          <span className="text-[10px] uppercase tracking-widest text-gold-400 font-semibold px-2.5 py-1 rounded bg-white/5 border border-white/10 inline-block mb-4">
-            Zero-literacy Onboarding
-          </span>
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-[10px] uppercase tracking-widest text-gold-400 font-semibold px-2.5 py-1 rounded bg-white/5 border border-white/10">
+              ऑडियो निर्देश / Voice Guide
+            </span>
+            <button 
+              onClick={speakInstructions}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/10 text-[10px] font-semibold text-gold-400 border border-white/20 hover:bg-white/20 transition-all cursor-pointer"
+              title="Hear Instructions / निर्देश सुनें"
+            >
+              <Volume2 className="w-3.5 h-3.5 animate-pulse-subtle" />
+              <span>सुनें / Listen</span>
+            </button>
+          </div>
           <h3 className="title-serif text-3xl font-medium mb-3 text-white">
-            WhatsApp Simulator
+            Artisan Studio
           </h3>
           <p className="text-xs text-ivory/50 leading-relaxed font-sans font-light mb-6">
-            Rural artisans do not use complex mobile apps. They onboard by simply sending a WhatsApp video and speaking about their work. Simulate the process by triggering an upload sequence below.
+            अपनी कलाकृति का फोटो अपलोड करें और तुरंत वैश्विक बाजार में प्रवेश करें।
+            (Upload a photo of your craft to instantly analyze and register it on the global luxury marketplace).
           </p>
 
           {/* LIVE UPLOAD — Real GPT-4o Demo */}
@@ -257,25 +278,24 @@ export default function WhatsAppMock({ onUploadComplete }) {
       </div>
 
       {/* WhatsApp Interface Panel */}
-      <div className="lg:col-span-7 flex flex-col h-[580px] bg-[#EDE8E0] rounded-2xl overflow-hidden border border-gold-500/20 shadow-luxury">
+      <div className="lg:col-span-7 flex flex-col h-[580px] bg-[#000000] rounded-2xl overflow-hidden border border-white/10 shadow-luxury animate-fade-in">
         
         {/* Chat Header */}
-        <div className="bg-[#075E54] text-white p-4 flex justify-between items-center shadow-md">
+        <div className="bg-[#09090B] text-white p-4 flex justify-between items-center shadow-md border-b border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-teal-800 flex items-center justify-center font-bold text-teal-100 border border-teal-500 relative">
+            <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-white border border-white/10 relative">
               ह
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border border-teal-700" />
             </div>
-            <div>
+            <div className="text-left">
               <h4 className="text-xs font-bold tracking-wide">HaathSe AI Audit</h4>
-              <p className="text-[9px] text-teal-200">Online • Active Assistant</p>
+              <p className="text-[9px] text-zinc-400">Online • Active Assistant</p>
             </div>
           </div>
           
           {/* Lang Selector */}
           <button 
             onClick={() => setLanguage(language === 'HI' ? 'EN' : 'HI')}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-white/10 text-[10px] font-semibold text-teal-100 border border-white/20 hover:bg-white/20 transition-all"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-zinc-800 text-[10px] font-semibold text-zinc-200 border border-zinc-700 hover:bg-zinc-700 transition-all cursor-pointer"
           >
             <Languages className="w-3.5 h-3.5" />
             <span>{language === 'HI' ? 'English' : 'हिंदी'}</span>
@@ -284,9 +304,7 @@ export default function WhatsAppMock({ onUploadComplete }) {
 
         {/* Chat Body */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-grid" style={{
-          backgroundColor: '#efeae2',
-          backgroundImage: 'radial-gradient(circle, rgba(0, 0, 0, 0.03) 1px, transparent 1px)',
-          backgroundSize: '16px 16px'
+          backgroundColor: '#000000'
         }}>
           {messages.map((msg) => {
             const isSelf = msg.sender === "artisan";
@@ -300,17 +318,17 @@ export default function WhatsAppMock({ onUploadComplete }) {
               >
                 {/* Message Bubble */}
                 <div 
-                  className={`max-w-[85%] rounded-2xl p-3.5 text-xs shadow-premium relative ${
+                  className={`max-w-[85%] rounded-2xl p-3.5 text-xs shadow-premium relative text-left ${
                     isSelf 
-                      ? 'bg-[#d9fdd3] text-charcoal-900 rounded-tr-none' 
+                      ? 'bg-zinc-800 text-white rounded-tr-none border border-zinc-700' 
                       : isAI 
-                        ? 'bg-charcoal text-ivory rounded-tl-none border border-gold-500/10'
-                        : 'bg-white text-charcoal-800 rounded-tl-none'
+                        ? 'bg-zinc-900 text-white rounded-tl-none border border-zinc-800'
+                        : 'bg-zinc-900 text-white rounded-tl-none border border-zinc-800'
                   }`}
                 >
                   {/* Media Content */}
                   {msg.mediaUrl && (
-                    <div className="mb-2 rounded-lg overflow-hidden border border-black/5 bg-charcoal-50 max-w-[240px]">
+                    <div className="mb-2 rounded-lg overflow-hidden border border-white/5 bg-zinc-950 max-w-[240px]">
                       <img src={msg.mediaUrl} alt="Uploaded Media" className="w-full object-cover aspect-[4/3]" />
                     </div>
                   )}
@@ -318,8 +336,8 @@ export default function WhatsAppMock({ onUploadComplete }) {
                   {/* Voice Note Waves */}
                   {msg.isVoiceNote && (
                     <div className="flex items-center gap-3.5 py-1 min-w-[200px]">
-                      <div className="w-8 h-8 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-600">
-                        <Play className="w-3.5 h-3.5 fill-teal-600" />
+                      <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-white border border-zinc-700">
+                        <Play className="w-3.5 h-3.5 fill-white" />
                       </div>
                       <div className="flex-1 flex items-end gap-0.5 h-6">
                         {/* Fake audio wave bars */}
@@ -327,25 +345,25 @@ export default function WhatsAppMock({ onUploadComplete }) {
                           <span 
                             key={i} 
                             style={{ height: `${h}%` }} 
-                            className="flex-1 bg-teal-500 rounded-full min-w-[2px]" 
+                            className="flex-1 bg-white rounded-full min-w-[2px]" 
                           />
                         ))}
                       </div>
-                      <span className="text-[10px] text-charcoal-700/60 font-medium">{msg.voiceDuration}</span>
+                      <span className="text-[10px] text-zinc-400 font-medium">{msg.voiceDuration}</span>
                     </div>
                   )}
 
                   {/* Text Content */}
                   {!msg.isVoiceNote && (
-                    <p className="whitespace-pre-line leading-relaxed font-sans">
+                    <p className="whitespace-pre-line leading-relaxed font-sans font-light">
                       {language === 'HI' ? msg.text : (msg.textEn || msg.text)}
                     </p>
                   )}
 
                   {/* Transcript box for voice notes */}
                   {msg.isVoiceNote && msg.transcript && (
-                    <div className="mt-2.5 pt-2 border-t border-charcoal-700/5 text-[10px] text-charcoal-700/70 italic bg-black/5 p-2 rounded">
-                      <p className="font-semibold text-[8px] uppercase tracking-wider text-charcoal-900 not-italic mb-0.5">Dialect Transcript:</p>
+                    <div className="mt-2.5 pt-2 border-t border-zinc-800 text-[10px] text-zinc-400 italic bg-zinc-950 p-2 rounded">
+                      <p className="font-semibold text-[8px] uppercase tracking-wider text-white not-italic mb-0.5">Dialect Transcript:</p>
                       "{msg.transcript}"
                     </div>
                   )}
@@ -353,22 +371,22 @@ export default function WhatsAppMock({ onUploadComplete }) {
                   {/* Message Info / Checkmark */}
                   <div className="flex justify-end items-center gap-1.5 mt-1 text-[9px] opacity-60">
                     <span>{msg.time}</span>
-                    {isSelf && <CheckCheck className="w-3.5 h-3.5 text-blue-500" />}
+                    {isSelf && <CheckCheck className="w-3.5 h-3.5 text-blue-400" />}
                   </div>
 
                   {/* Action Review Button for AI Response */}
                   {isAI && msg.showActionBtn && (
                     <div className="mt-4 space-y-2">
                       {msg.isRealResult && (
-                        <div className="flex items-center gap-1.5 text-[9px] text-terracotta font-semibold uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5 text-[9px] text-yellow-500 font-semibold uppercase tracking-wider">
                           <Zap className="w-3 h-3" /> Live GPT-4o Result
                         </div>
                       )}
                       <button
                         onClick={handlePublishClick}
-                        className="w-full flex items-center justify-center gap-2 py-3 bg-terracotta text-ivory text-xs uppercase tracking-widest font-semibold rounded-xl hover:bg-terracotta-600 transition-all duration-300 shadow-glow-terracotta animate-pulse"
+                        className="w-full flex items-center justify-center gap-2 py-3 bg-white text-black text-xs uppercase tracking-widest font-bold rounded-xl hover:bg-zinc-200 transition-all duration-300 shadow shadow-white/10"
                       >
-                        <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+                        <Sparkles className="w-3.5 h-3.5 text-yellow-600" />
                         Review AI Audit Listing
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
@@ -382,11 +400,11 @@ export default function WhatsAppMock({ onUploadComplete }) {
           {/* AI Typing Indicator */}
           {isTyping && (
             <div className="flex justify-start">
-              <div className="bg-charcoal text-ivory rounded-2xl rounded-tl-none p-3.5 text-xs shadow-premium flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 bg-gold-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 bg-gold-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 bg-gold-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                <span className="text-[10px] text-ivory/50 ml-1 tracking-wider uppercase font-semibold">KritiCam AI is analyzing...</span>
+              <div className="bg-zinc-900 text-white rounded-2xl rounded-tl-none p-3.5 text-xs shadow-premium flex items-center gap-1.5 border border-zinc-800">
+                <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="text-[10px] text-zinc-400 ml-1 tracking-wider uppercase font-semibold">KritiCam AI is analyzing...</span>
               </div>
             </div>
           )}
@@ -394,10 +412,10 @@ export default function WhatsAppMock({ onUploadComplete }) {
           {/* Recording Overlay Inside Chat */}
           {isRecording && (
             <div className="flex justify-end animate-slide-up">
-              <div className="bg-[#d9fdd3] text-charcoal-900 rounded-2xl rounded-tr-none p-3.5 text-xs shadow-premium min-w-[200px] flex items-center justify-between gap-3">
+              <div className="bg-red-950 text-red-200 border border-red-900 rounded-2xl rounded-tr-none p-3.5 text-xs shadow-premium min-w-[200px] flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-ping" />
-                  <span className="text-[10px] uppercase tracking-wider text-red-600 font-bold">Recording Voice...</span>
+                  <span className="text-[10px] uppercase tracking-wider text-red-400 font-bold">Recording Voice...</span>
                 </div>
                 <span className="font-mono text-xs">0:0{recordingSeconds}</span>
               </div>
@@ -408,33 +426,33 @@ export default function WhatsAppMock({ onUploadComplete }) {
         </div>
 
         {/* Chat Input Area (Mock Icons) */}
-        <div className="bg-[#F0F2F5] p-3.5 flex items-center gap-3.5 border-t border-gold-500/10">
+        <div className="bg-[#09090B] p-3.5 flex items-center gap-3.5 border-t border-white/5">
           {/* Zero-literacy Big Photo Button — now also triggers file picker */}
           <button 
             disabled={isRecording || isTyping || isLiveUploading}
             onClick={() => fileInputRef.current?.click()}
-            className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-charcoal hover:bg-gold-100 hover:text-terracotta transition-colors border border-gold-500/15 shadow-premium disabled:opacity-40"
+            className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-white border border-zinc-700 hover:bg-zinc-700 transition-colors shadow-premium disabled:opacity-40 cursor-pointer"
             title="Upload Real Craft Image (Live AI)"
           >
             {isLiveUploading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-terracotta" />
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
             ) : (
-              <Image className="w-4 h-4 text-charcoal-700" />
+              <Image className="w-4 h-4" />
             )}
           </button>
 
           {/* Text input (disabled in simulator, prompt driven) */}
-          <div className="flex-1 bg-white rounded-full px-4 py-2 border border-gold-500/10 text-xs text-charcoal/40 font-light select-none">
+          <div className="flex-1 bg-zinc-950 rounded-full px-4 py-2 border border-zinc-800 text-xs text-zinc-500 font-light select-none text-left">
             {language === 'HI' ? 'ऑटोमेटिक वॉयस मोड सक्रिय...' : 'Automatic voice mode active...'}
           </div>
 
           {/* Zero-literacy Big Audio Mic Button */}
           <button 
             disabled={isTyping}
-            className={`w-12 h-12 rounded-full flex items-center justify-center text-white border transition-all duration-300 shadow-luxury ${
+            className={`w-12 h-12 rounded-full flex items-center justify-center text-white border transition-all duration-300 shadow-luxury cursor-pointer ${
               isRecording 
-                ? 'bg-red-500 border-red-400 scale-110 animate-pulse' 
-                : 'bg-[#075E54] border-teal-600 hover:bg-teal-700 hover:scale-105'
+                ? 'bg-red-600 border-red-500 scale-110 animate-pulse' 
+                : 'bg-zinc-800 border-zinc-700 hover:bg-zinc-700 hover:scale-105'
             }`}
             title="Record Voice"
           >
