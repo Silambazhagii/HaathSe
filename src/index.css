@@ -1,8 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Premium Design System Overrides */
+/* Premium Design System Overrides - Warm Sand & Charcoal Minimalist Theme */
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -11,10 +13,13 @@
   }
 
   body {
-    @apply bg-ivory text-charcoal selection:bg-terracotta/10 selection:text-terracotta;
+    background-color: #FAF8F5; /* Warm off-white sand */
+    color: #1C1917; /* Deep stone charcoal */
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
   }
 
-  /* Custom Premium Scrollbar */
+  /* Custom Premium Scrollbar matching minimalist theme */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -23,39 +28,46 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(30, 30, 31, 0.15);
+    background: rgba(120, 113, 108, 0.2);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(30, 30, 31, 0.3);
+    background: rgba(120, 113, 108, 0.4);
   }
-}
-
-body {
-  background-color: #09090B;
-  color: #F4F4F5;
-  font-family: 'Outfit', 'Inter', sans-serif;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
 }
 
 @layer utilities {
-  /* Glassmorphism styles */
+  /* Minimalist Premium Card style */
+  .premium-card {
+    background: #FFFFFF;
+    border: 1px solid rgba(231, 229, 228, 0.6); /* border-stone-200/60 */
+    box-shadow: 0 4px 20px -2px rgba(120, 113, 108, 0.04), 0 2px 8px -1px rgba(120, 113, 108, 0.02);
+    border-radius: 24px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .premium-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px -4px rgba(120, 113, 108, 0.08), 0 4px 12px -2px rgba(120, 113, 108, 0.04);
+    border-color: rgba(120, 113, 108, 0.2);
+  }
+
+  /* Glassmorphism light styled with warm overlay */
   .glass-panel {
-    background: rgba(15, 15, 17, 0.8);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(250, 248, 245, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(28, 25, 23, 0.05);
   }
 
   .glass-panel-dark {
-    background: rgba(15, 15, 17, 0.85);
+    background: rgba(28, 25, 23, 0.03);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(28, 25, 23, 0.06);
   }
   
-  /* Image zoom layout standardizer */
+  /* Zoom Layout stencils */
   .zoom-container {
     overflow: hidden;
     position: relative;
@@ -66,86 +78,23 @@ body {
   .zoom-container:hover .zoom-image {
     transform: scale(1.04);
   }
-
-  /* Luxury radial glows */
-  .glow-border::after {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    background: linear-gradient(135deg, rgba(197, 168, 128, 0.3), rgba(212, 91, 52, 0.3));
-    border-radius: inherit;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .glow-border:hover::after {
-    opacity: 1;
-  }
 }
 
-/* Background luxury lines and grid */
-.grid-bg {
-  background-size: 50px 50px;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-}
-
-.gold-glow {
-  box-shadow: 0 0 50px rgba(217, 119, 6, 0.05);
-}
-
-.terracotta-glow {
-  box-shadow: 0 0 50px rgba(224, 93, 61, 0.05);
-}
-
-/* Premium Sans-Serif Bold Typography */
+/* Elegant Title Serif Font */
 .title-serif {
-  font-family: 'Outfit', 'Inter', sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-/* Fluid ambient mesh keyframes */
-@keyframes blob-1 {
-  0%, 100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(30px, -40px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.95);
-  }
-}
-
-@keyframes blob-2 {
-  0%, 100% {
-    transform: translate(0px, 0px) scale(1.05);
-  }
-  33% {
-    transform: translate(-25px, 30px) scale(0.95);
-  }
-  66% {
-    transform: translate(35px, -20px) scale(1.08);
-  }
-}
-
+/* Animations */
 @keyframes float-subtle {
   0%, 100% {
     transform: translateY(0px) rotate(0deg);
   }
   50% {
-    transform: translateY(-8px) rotate(0.5deg);
+    transform: translateY(-6px) rotate(0.3deg);
   }
-}
-
-.animate-blob-1 {
-  animation: blob-1 12s infinite ease-in-out;
-}
-
-.animate-blob-2 {
-  animation: blob-2 15s infinite ease-in-out;
 }
 
 .animate-float-subtle {
@@ -163,6 +112,6 @@ body {
 }
 
 .animate-waveform-bar {
-  animation: waveform 1s ease-in-out infinite;
+  animation: waveform 1.2s ease-in-out infinite;
   transform-origin: bottom;
 }

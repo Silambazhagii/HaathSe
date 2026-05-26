@@ -5,7 +5,7 @@ import { t, translateField, speakText } from '../utils/translator';
 import { subscribeToProducts, mapBackendProductToUI } from '../services/kriticamApi';
 import { isSupabaseConfigured } from '../lib/supabase';
 
-export default function Marketplace({ onProductSelect, language, lowBandwidth, products }) {
+export default function Marketplace({ onProductSelect, onBackClick, language, lowBandwidth, products }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedState, setSelectedState] = useState('All');
@@ -26,7 +26,7 @@ export default function Marketplace({ onProductSelect, language, lowBandwidth, p
     return unsubscribe;
   }, []);
 
-  const categories = ['All', 'Home Decor', 'Apparel'];
+  const categories = ['All', 'Pottery', 'Apparel', 'Wooden Art', 'Home Decor', 'Paintings'];
   const states = ['All', 'Rajasthan', 'Tamil Nadu', 'Chhattisgarh', 'Jammu & Kashmir', 'Karnataka'];
 
   // Handle play voice snippet from card
@@ -89,156 +89,89 @@ export default function Marketplace({ onProductSelect, language, lowBandwidth, p
   }, [products, searchQuery, selectedCategory, selectedState, sortBy, language]);
 
   return (
-    <div className="w-full space-y-12 font-sans">
-      {/* Page Title & Intro */}
-      <div className="text-center max-w-2xl mx-auto space-y-4">
-        <span className="text-[10px] uppercase tracking-widest text-terracotta font-semibold px-2.5 py-1 rounded bg-terracotta/10 border border-terracotta/20 inline-block">
-          Luxury Wholesale Catalog
-        </span>
-        <h2 className="title-serif text-4xl md:text-5xl text-charcoal font-medium">
-          {t("nav_marketplace", language)}
-        </h2>
-        <p className="text-xs text-charcoal-700/60 leading-relaxed font-sans font-light">
-          Acquire verified, museum-grade heritage crafts directly from rural Indian artisan clusters. Every piece features a machine-audited provenance ledger ensuring fair-trade compensation.
+    <div className="w-full space-y-6 font-sans text-left max-w-3xl mx-auto pb-16">
+      
+      {/* Mobile Top Bar Search Header matching Screen 2 */}
+      <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+        <button 
+          onClick={onBackClick}
+          className="p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-600"
+          title="Back"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        
+        {/* Search input with scan icon */}
+        <div className="relative flex-1">
+          <input
+            type="text"
+            placeholder="Search crafts..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-150 rounded-xl text-xs focus:outline-none focus:border-blue-500 placeholder-slate-400 font-medium transition-colors"
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+            {/* Scan icon */}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h3m-3 0H9m12 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </span>
+        </div>
+      </div>
+
+      {/* Subtitle count matching Screen 2 */}
+      <div className="px-1 text-left">
+        <p className="text-[11px] text-slate-500 font-medium">
+          <span className="font-bold text-slate-800">{filteredProducts.length} products</span> found in Heritage Catalog
         </p>
       </div>
 
-      {/* Advanced Filtering controls */}
-      <div className="bg-white p-6 rounded-3xl border border-gold-500/10 shadow-premium space-y-6">
-        <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
-          
-          {/* Live Search bar */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-gold-500 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by craft, artisan name, village or material..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-charcoal-50 rounded-full border border-gold-500/10 focus:outline-none focus:border-gold-500 text-xs text-charcoal placeholder-charcoal-700/40 font-sans font-light transition-colors"
-            />
-          </div>
+      {/* Filter pills horizontal row matching Screen 2 */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none px-1">
+        <button className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-full text-xs font-semibold text-stone-700 flex items-center gap-1.5 focus:outline-none flex-shrink-0">
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          <span>Filters</span>
+        </button>
 
-          {/* Sorter Selector */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 text-xs text-charcoal-700/60">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-gold-500" />
-              <span>Sort by:</span>
-            </div>
-            
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2.5 bg-charcoal-50 rounded-full border border-gold-500/10 focus:outline-none focus:border-gold-500 text-xs text-charcoal font-sans font-medium cursor-pointer transition-colors"
-            >
-              <option value="authenticity">KritiCam Authenticity (High to Low)</option>
-              <option value="price-asc">Wholesale Price (Low to High)</option>
-              <option value="price-desc">Wholesale Price (High to Low)</option>
-            </select>
-          </div>
-        </div>
+        {/* Selected Category Pill */}
+        <button 
+          onClick={() => setSelectedCategory(selectedCategory === 'All' ? 'Home Decor' : 'All')}
+          className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 focus:outline-none flex-shrink-0 transition-colors ${
+            selectedCategory !== 'All' 
+              ? 'bg-[#1C1917] text-white' 
+              : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
+          }`}
+        >
+          <span>Category: {selectedCategory}</span>
+          {selectedCategory !== 'All' && <span className="text-[10px]">✕</span>}
+        </button>
 
-        {/* Categories and State Badges Filters */}
-        <div className="flex flex-col gap-4 border-t border-gold-500/5 pt-4">
-          
-          {/* Categories Row */}
-          <div className="flex flex-wrap items-center gap-2 text-left">
-            <span className="text-[9px] uppercase tracking-wider text-charcoal-700/50 font-bold mr-2">Category:</span>
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-1.5 rounded-full text-xs font-sans tracking-wide transition-all ${
-                  selectedCategory === cat
-                    ? 'bg-charcoal text-ivory font-medium shadow-premium'
-                    : 'bg-charcoal-50 text-charcoal-700/70 hover:bg-gold-100 hover:text-charcoal'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+        {/* Selected State Pill */}
+        <button 
+          onClick={() => setSelectedState(selectedState === 'All' ? 'Rajasthan' : 'All')}
+          className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 focus:outline-none flex-shrink-0 transition-colors ${
+            selectedState !== 'All' 
+              ? 'bg-[#1C1917] text-white' 
+              : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
+          }`}
+        >
+          <span>Region: {selectedState}</span>
+          {selectedState !== 'All' && <span className="text-[10px]">✕</span>}
+        </button>
 
-          {/* State Clusters Row */}
-          <div className="flex flex-wrap items-center gap-2 text-left">
-            <span className="text-[9px] uppercase tracking-wider text-charcoal-700/50 font-bold mr-2">State Cluster:</span>
-            {states.map((st) => (
-              <button
-                key={st}
-                onClick={() => setSelectedState(st)}
-                className={`px-4 py-1.5 rounded-full text-xs font-sans tracking-wide transition-all ${
-                  selectedState === st
-                    ? 'bg-terracotta text-ivory font-medium shadow-premium'
-                    : 'bg-charcoal-50 text-charcoal-700/70 hover:bg-gold-100 hover:text-charcoal'
-                }`}
-              >
-                {st}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Sort Pill */}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="px-3 py-1 bg-white border border-stone-200 rounded-full text-xs font-semibold text-stone-600 focus:outline-none flex-shrink-0 cursor-pointer"
+        >
+          <option value="authenticity">★ KritiCam Audit</option>
+          <option value="price-asc">₹ Price: Low to High</option>
+          <option value="price-desc">₹ Price: High to Low</option>
+        </select>
       </div>
 
-      {/* ── Live AI Pipeline Items (streamed via Supabase Realtime) ── */}
-      {liveItems.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest font-bold text-terracotta bg-terracotta/10 border border-terracotta/20 px-3 py-1.5 rounded-full">
-              <Zap className="w-3 h-3" />
-              {liveItems.length} Live AI Result{liveItems.length > 1 ? 's' : ''} — Supabase Realtime
-            </span>
-            <span className="text-[9px] text-charcoal/40">
-              {isSupabaseConfigured ? 'Streamed directly from Supabase DB' : 'Uploaded this session'}
-            </span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {liveItems.map((prod) => (
-              <div
-                key={prod.id}
-                onClick={() => onProductSelect(prod)}
-                className="group cursor-pointer bg-white rounded-3xl border-2 border-terracotta/20 shadow-premium overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-luxury flex flex-col justify-between relative"
-              >
-                <div className="absolute top-3 right-3 z-10">
-                  <span className="flex items-center gap-1 bg-terracotta text-ivory text-[8px] uppercase tracking-widest font-bold px-2 py-1 rounded-full shadow">
-                    <Zap className="w-2.5 h-2.5" /> Live AI
-                  </span>
-                </div>
-                <div className="zoom-container aspect-[4/3] bg-charcoal-50 relative border-b border-gold-500/10">
-                  <img src={prod.image} alt={prod.name} className="zoom-image w-full h-full object-cover" />
-                  <div className="absolute top-3 left-3">
-                    <span className="flex items-center gap-1 bg-charcoal/90 text-ivory text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full border border-white/10">
-                      <Sparkles className="w-3 h-3 text-gold-400" />
-                      {prod.kritiCamScore}% AI Audit
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6 space-y-4 text-left flex-1 flex flex-col justify-between">
-                  <div className="space-y-1">
-                    <p className="text-[10px] uppercase tracking-widest text-gold-600 font-semibold">{prod.craft}</p>
-                    <h3 className="title-serif text-xl font-medium text-charcoal group-hover:text-terracotta transition-colors leading-tight">{prod.name}</h3>
-                    <p className="text-[10px] text-charcoal/50">{prod.heritageRegion}</p>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-gold-500/5">
-                    <p className="text-lg font-bold text-charcoal font-mono">
-                      ₹{prod.priceINR?.toLocaleString()} <span className="text-xs text-charcoal/50 font-normal">(${prod.priceUSD})</span>
-                    </p>
-                    <span className="w-8 h-8 rounded-full bg-charcoal-50 flex items-center justify-center text-charcoal group-hover:bg-charcoal group-hover:text-ivory transition-all duration-300">
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-gold-500/10 pt-6">
-            <p className="text-[10px] uppercase tracking-widest text-charcoal/40 font-semibold">Curated Heritage Collection</p>
-          </div>
-        </div>
-      )}
-
-      {/* Grid of Products */}
+      {/* 2-Column or 3-Column Responsive Product Grid matching Screen 2 */}
       {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {filteredProducts.map((prod) => {
             const artisan = artisans.find((a) => a.id === prod.artisanId);
             
@@ -246,122 +179,60 @@ export default function Marketplace({ onProductSelect, language, lowBandwidth, p
               <div
                 key={prod.id}
                 onClick={() => onProductSelect(prod)}
-                className={`group cursor-pointer bg-white rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-luxury flex flex-col justify-between relative ${
-                  prod.id === 'prod-5'
-                    ? 'border-2 border-terracotta shadow-[0_0_15px_rgba(212,91,52,0.3)] animate-pulse-subtle'
-                    : 'border border-gold-500/10 shadow-premium'
-                }`}
+                className="group cursor-pointer bg-white rounded-3xl border border-stone-200/50 shadow-sm overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex flex-col justify-between relative"
               >
-                
-                {/* Cinematic Image Container */}
-                <div className="zoom-container aspect-[4/3] bg-charcoal-50 relative border-b border-gold-500/10">
-                  {lowBandwidth ? (
-                    // Low Bandwidth Placeholder Canvas/Pencil Stencil Outline representation
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-ivory p-6 border-2 border-dashed border-gold-500/30 text-charcoal/50">
-                      <Sparkles className="w-8 h-8 text-gold-500 mb-2 animate-pulse-subtle" />
-                      <p className="font-mono text-[9px] uppercase tracking-wider">Low-Bandwidth Mode Active</p>
-                      <p className="font-semibold text-xs text-charcoal mt-1 text-center font-serif">
-                        {translateField(prod, 'name', language)}
-                      </p>
-                      <p className="text-[10px] italic mt-1">Image stencil loaded</p>
-                    </div>
-                  ) : (
-                    <img
-                      src={prod.image}
-                      alt={translateField(prod, 'name', language)}
-                      className="zoom-image w-full h-full object-cover"
-                    />
-                  )}
-                  
-                  {/* Floating AI Verification Badge */}
-                  <div className="absolute top-4 left-4 flex flex-wrap gap-1.5 z-10">
-                    <span className="flex items-center gap-1 bg-charcoal/90 text-ivory text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full border border-white/10 shadow-premium">
-                      <Sparkles className="w-3 h-3 text-gold-400" />
-                      {prod.kritiCamScore}% AI Audit
-                    </span>
-                    {prod.id === 'prod-5' && (
-                      <span className="flex items-center gap-1 bg-terracotta text-white text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full border border-white/10 shadow-glow-terracotta animate-pulse">
-                        Just Onboarded
-                      </span>
-                    )}
-                  </div>
-
-                  {/* AI Translated Tag */}
-                  <div className="absolute top-4 right-4 z-10">
-                    <span className="flex items-center gap-1 bg-white/95 text-charcoal text-[9px] uppercase tracking-widest font-semibold px-2 py-1.5 rounded-full shadow-premium border border-gold-500/10">
-                      AI Translated ({language})
-                    </span>
-                  </div>
-
-                  {/* Regional Label */}
-                  <div className="absolute bottom-4 left-4 z-10">
-                    <span className="flex items-center gap-1 bg-white/95 text-charcoal text-[9px] uppercase tracking-widest font-semibold px-2.5 py-1 rounded-md shadow-premium border border-gold-500/10">
-                      <MapPin className="w-2.5 h-2.5 text-terracotta" />
-                      {artisan?.village}
-                    </span>
-                  </div>
-
-                  {/* Audio Preview trigger on Card image */}
-                  <button
-                    onClick={(e) => handlePlayVoice(e, prod)}
-                    className={`absolute bottom-4 right-4 z-20 w-8 h-8 rounded-full flex items-center justify-center shadow-premium transition-all duration-300 ${
-                      playingVoiceId === prod.id 
-                        ? 'bg-terracotta text-white' 
-                        : 'bg-white/90 text-charcoal hover:bg-white hover:scale-105'
-                    }`}
-                    title="Listen to Artisan Voice Description"
-                  >
-                    {playingVoiceId === prod.id ? (
-                      <Pause className="w-3.5 h-3.5 fill-white" />
-                    ) : (
-                      <Volume2 className="w-3.5 h-3.5" />
-                    )}
-                  </button>
+                {/* Floating AI Scan Score Badge */}
+                <div className="absolute top-2 left-2 z-10 flex flex-wrap gap-1">
+                  <span className="flex items-center gap-0.5 bg-[#1C1917] text-white text-[8px] uppercase tracking-widest font-bold px-2 py-1 rounded-lg shadow-sm">
+                    <Sparkles className="w-2.5 h-2.5 text-white" />
+                    {prod.kritiCamScore}% AI
+                  </span>
                 </div>
 
-                {/* Card Details text info */}
-                <div className="p-6 space-y-4 text-left flex-1 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <p className="text-[10px] uppercase tracking-widest text-gold-600 font-semibold">
-                        {translateField(prod, 'craft', language)}
-                      </p>
-                      {prod.verifiedBadge && (
-                        <span className="flex items-center gap-1 text-[9px] text-green-600 font-semibold">
-                          <CheckCircle2 className="w-3 h-3" /> Fair-Trade
-                        </span>
-                      )}
-                    </div>
-                    
-                    <h3 className="title-serif text-xl font-medium text-charcoal group-hover:text-terracotta transition-colors leading-tight">
-                      {translateField(prod, 'name', language)}
-                    </h3>
-                  </div>
+                {/* Floating Heart / Fav Badge */}
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-white/90 text-red-500 hover:text-red-600 transition-colors shadow-sm"
+                >
+                  <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </button>
 
-                  {/* Artisan Mini Profile */}
-                  <div className="flex items-center gap-2.5 py-2 border-y border-gold-500/5">
-                    <img
-                      src={artisan?.avatar}
-                      alt={artisan?.name}
-                      className="w-7 h-7 rounded-full object-cover border border-gold-500/20"
+                {/* Product Image */}
+                <div className="aspect-[4/3] bg-stone-50 overflow-hidden relative border-b border-stone-100">
+                  {lowBandwidth ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center">
+                      <p className="font-bold text-xs text-stone-800 truncate">{translateField(prod, 'name', language)}</p>
+                    </div>
+                  ) : (
+                    <img 
+                      src={prod.image} 
+                      alt={translateField(prod, 'name', language)} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div>
-                      <p className="text-[9px] uppercase tracking-wider text-charcoal/40 font-semibold leading-none">Artisan Partner</p>
-                      <p className="text-xs text-charcoal font-semibold">{artisan?.name}</p>
-                    </div>
+                  )}
+                </div>
+
+                {/* Info Text Area */}
+                <div className="p-3 text-left space-y-1.5 flex-1 flex flex-col justify-between bg-white">
+                  <div>
+                    <h4 className="text-xs font-bold text-stone-850 truncate">
+                      {translateField(prod, 'name', language)}
+                    </h4>
+                    <p className="text-[9px] text-stone-400 uppercase tracking-wider font-semibold">
+                      {translateField(prod, 'craft', language)}
+                    </p>
                   </div>
 
-                  {/* Pricing and Action Link */}
-                  <div className="flex items-center justify-between pt-1">
+                  <div className="flex justify-between items-center pt-1 border-t border-stone-50">
                     <div>
-                      <p className="text-[9px] uppercase tracking-wider text-charcoal/40 font-semibold leading-none">Wholesale Price</p>
-                      <p className="text-lg font-bold text-charcoal font-mono">
-                        ₹{prod.priceINR.toLocaleString()} <span className="text-xs text-charcoal/50 font-normal">(${prod.priceUSD})</span>
-                      </p>
+                      <p className="text-xs font-bold text-stone-900 font-mono">₹{prod.priceINR.toLocaleString()}</p>
+                      <p className="text-[8px] text-stone-450 line-through">₹{Math.round(prod.priceINR * 1.2).toLocaleString()}</p>
                     </div>
-                    
-                    <span className="w-8 h-8 rounded-full bg-charcoal-50 flex items-center justify-center text-charcoal group-hover:bg-charcoal group-hover:text-ivory transition-all duration-300">
-                      <ArrowRight className="w-3.5 h-3.5" />
+                    {/* Add to Cart small black circle button matching mockups */}
+                    <span className="w-6 h-6 rounded-full bg-stone-100 text-stone-900 flex items-center justify-center group-hover:bg-[#1C1917] group-hover:text-white transition-colors duration-300">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                     </span>
                   </div>
                 </div>
@@ -370,15 +241,15 @@ export default function Marketplace({ onProductSelect, language, lowBandwidth, p
           })}
         </div>
       ) : (
-        <div className="text-center py-20 bg-white rounded-3xl border border-gold-500/10 shadow-premium space-y-4">
-          <p className="text-xs text-charcoal-700/60 uppercase tracking-widest font-semibold">No products match your criteria</p>
+        <div className="text-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm space-y-4">
+          <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">No products match your criteria</p>
           <button
             onClick={() => {
               setSearchQuery('');
               setSelectedCategory('All');
               setSelectedState('All');
             }}
-            className="px-5 py-2.5 rounded-full border border-gold-500/30 text-xs font-semibold text-charcoal hover:border-charcoal transition-all"
+            className="px-5 py-2 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 hover:border-slate-800 transition-all"
           >
             Clear Filters
           </button>
