@@ -41,6 +41,24 @@ export const translations = {
   },
 
   // Hero Section
+  "btn_shop_now": {
+    EN: "Shop Now",
+    HI: "अभी खरीदें",
+    TA: "இப்போது வாங்க",
+    BN: "এখনই কেনাকাটা",
+    KN: "ತಕ್ಷಣದ ಖರೀದಿ",
+    MR: "आता खरेदी करा",
+    TE: "ఇప్పుడే కొనండి"
+  },
+  "categories_heading": {
+    EN: "Categories",
+    HI: "श्रेणियाँ",
+    TA: "வகைகள்",
+    BN: "বিভাগসমূহ",
+    KN: "ವರ್ಗಗಳು",
+    MR: "वर्गीकरण",
+    TE: "వర్గాలు"
+  },
   "hero_badge": {
     EN: "Preserving Heritage via AI Provenance",
     HI: "एआई प्रमाणन के माध्यम से धरोहर का संरक्षण",
@@ -67,6 +85,24 @@ export const translations = {
     KN: "ಜಾಗತಿಕ ಗ್ಯಾಲರಿಗಳವರೆಗೆ",
     MR: "जागतिक दालनांपर्यंत",
     TE: "ప్రపంచ ప్రదర్శన శాలలకు"
+  },
+  "hero_tagline_line1": {
+    EN: "Timeless Designs",
+    HI: "समयहीन डिज़ाइन",
+    TA: "நேரமற்ற வடிவமைப்பு",
+    BN: "অমর ডিজাইন",
+    KN: "ಸಮಯರಹಿತ ವಿನ್ಯಾಸ",
+    MR: "कालातीत डिझाइन",
+    TE: "కాలాతీత డిజైన్లు"
+  },
+  "hero_tagline_line2": {
+    EN: "for Modern Living",
+    HI: "आधुनिक जीवन के लिए",
+    TA: "நவீன வாழ்விற்கு",
+    BN: "আধুনিক জীবনযাত্রার জন্য",
+    KN: "ಆಧುನಿಕ ಜೀವನಕ್ಕಾಗಿ",
+    MR: "आधुनिक जीवनासाठी",
+    TE: "ఆధునిక జీవనానికి"
   },
   "hero_desc": {
     EN: "HaathSe empowers traditional Indian artisans to sell globally using zero-literacy WhatsApp onboarding, computer vision material analysis, and blockchain provenance storytelling.",

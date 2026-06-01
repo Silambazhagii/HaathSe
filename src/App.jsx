@@ -14,6 +14,7 @@ import BackendStatus from './components/BackendStatus';
 import { products } from './data/mockData';
 import { t, translateField } from './utils/translator';
 import { Sparkles, ArrowRight, ArrowLeft, UploadCloud, Fingerprint, FileText, CheckCircle2, Quote, Heart, SlidersHorizontal } from 'lucide-react';
+import { fetchProducts, subscribeToProducts, mapBackendProductToUI } from './services/kriticamApi';
 
 // Premium interactive counter component
 const AnimatedCounter = ({ value, duration = 1800, prefix = "", suffix = "", decimals = 0 }) => {
@@ -53,6 +54,36 @@ export default function App() {
   const [activeProduct, setActiveProduct] = useState(products[0]);
   // Dynamic Catalog State - starts with all products
   const [productList, setProductList] = useState(products);
+
+  // Fetch live products on mount and subscribe to real-time updates
+  useEffect(() => {
+    async function loadLiveProducts() {
+      try {
+        const liveProducts = await fetchProducts();
+        const mappedLive = liveProducts.map(mapBackendProductToUI);
+        setProductList(prev => {
+          const combined = [...mappedLive, ...prev];
+          // Deduplicate by ID
+          return combined.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
+        });
+      } catch (err) {
+        console.error("Failed to fetch live products:", err);
+      }
+    }
+    loadLiveProducts();
+
+    // Subscribe to new products in real-time
+    const unsubscribe = subscribeToProducts((newProduct) => {
+      const uiProduct = mapBackendProductToUI(newProduct);
+      setProductList(prev => {
+        if (prev.some(p => p.id === uiProduct.id)) return prev;
+        return [uiProduct, ...prev];
+      });
+    });
+
+    return unsubscribe;
+  }, []);
+
   
   // Shopping Cart & Direct B2C Flow States
   const [cart, setCart] = useState([]);
@@ -232,13 +263,13 @@ export default function App() {
             <div className="bg-gradient-to-br from-[#854D0E]/20 via-[#A16207]/10 to-[#FEF08A]/10 rounded-[2rem] p-7 md:p-8 flex items-center justify-between shadow-[0_12px_35px_-12px_rgba(161,98,7,0.1)] relative overflow-hidden border border-[#854D0E]/15 group">
               <div className="text-left space-y-4 md:max-w-[55%] z-10">
                 <h2 className="title-serif text-2xl md:text-3xl text-stone-900 leading-tight font-bold">
-                  Timeless Designs <br />for Modern Living
+                  <h2 className="title-serif text-2xl md:text-3xl text-stone-900 leading-tight font-bold">{t('hero_tagline_line1', language)}<br/> {t('hero_tagline_line2', language)}</h2>
                 </h2>
                 <button 
                   onClick={() => setActiveScreen('marketplace')} 
                   className="px-6 py-2.5 bg-[#1C1917] hover:bg-stone-800 text-white text-[10px] uppercase tracking-widest font-bold rounded-full transition-all duration-300 transform active:scale-95 shadow-md"
                 >
-                  Shop Now
+                                    {t('btn_shop_now', language)}
                 </button>
               </div>
               

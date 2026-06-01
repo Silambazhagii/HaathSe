@@ -76,6 +76,8 @@ class ProductMetadata(BaseModel):
     marketing_story: str = Field(..., description="Evocative 3-4 sentence luxury catalog story for global B2B buyers")
     heritage_region: str = Field(..., description="Most likely Indian state or craft district of origin")
     tags: List[str] = Field(default=[], description="Up to 5 SEO/catalog tags for the product")
+    image_url: Optional[str] = Field(default=None, description="External URL of the product image")
+
 
 
 class ProductRecord(BaseModel):
@@ -267,8 +269,8 @@ async def _save_to_database(data: ProductMetadata) -> dict:
         "marketing_story": data.marketing_story,
         "heritage_region": data.heritage_region,
         "tags": data.tags,
-        # Placeholder image — in production, we'd upload the image to Supabase Storage
-        "image_url": "https://images.unsplash.com/photo-1582721478779-0ae163c05a60?auto=format&fit=crop&q=80&w=600",
+        # Use provided image_url or fallback placeholder
+        "image_url": data.image_url or "https://images.unsplash.com/photo-1582721478779-0ae163c05a60?auto=format&fit=crop&q=80&w=600",
         "status": "published",
     }
 
@@ -284,6 +286,16 @@ async def _save_to_database(data: ProductMetadata) -> dict:
     else:
         # No Supabase configured — return the payload directly (still demo-able)
         return {"status": "success_mock_db", "product": db_payload}
+
+
+@app.post("/api/products", tags=["Marketplace"])
+async def create_product(product: ProductMetadata):
+    """
+    Directly insert pre-extracted product details into the marketplace database.
+    This is called by external integrations, such as the Telegram bot.
+    """
+    record = await _save_to_database(product)
+    return record
 
 
 @app.get("/api/products", tags=["Marketplace"])

@@ -49,8 +49,8 @@ export const artisans = [
     voiceTranscript_TE: "నమస్తే, నేను కోట్ జేవార్ నుండి రామ్ స్వరూప్. ఈ వాసేని నా స్వంత చేతులతో తయారు చేసాను. సహజ రంగులను ఉపయోగించి దీనిని తయారు చేయడానికి సుమారు ఆరు రోజులు పడుతుంది. ఈ కళ మీకు నచ్చుతుందని ఆశిస్తున్నాను.",
 
     coordinates: { lat: 26.9124, lng: 75.7873 },
-    avatar: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=200",
-    coverImage: "https://images.unsplash.com/photo-1590736969955-71cb94801759?auto=format&fit=crop&q=80&w=1200",
+    avatar: "avatar_art1.png",
+    coverImage: "cover_art1.png",
     sustainabilityScore: 98,
     heritageScore: 100,
     wagesScore: 95,
@@ -102,8 +102,8 @@ export const artisans = [
     voiceTranscript_TE: "వణక్కం, నా పేరు మీనాక్షి. ఈ చీర కంచి పట్టు మరియు స్వచ్ఛమైన బంగారు జరితో నేయబడింది. ఇద్దరు నేత కార్మికులు కలిసి 15 రోజులు కష్టపడి దీనిని సృష్టించారు.",
 
     coordinates: { lat: 12.8342, lng: 79.7036 },
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200",
-    coverImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=1200",
+    avatar: "avatar_art1.png",
+    coverImage: "cover_art1.png",
     sustainabilityScore: 94,
     heritageScore: 98,
     wagesScore: 98,
@@ -155,8 +155,8 @@ export const artisans = [
     voiceTranscript_TE: "జై జోహార్, నేను కొండగావ్ నుండి శాంతి బాఘేల్. ఈ బెల్ మెటల్ శిల్పం మా పూర్వీకుల సాంప్రదాయం. ఇది మట్టి, మైనపు మరియు ఇత్తడిని ఉపయోగిస్తుంది. ప్రతి శిల్పం పూర్తిగా విలక్షణమైనది.",
 
     coordinates: { lat: 19.5982, lng: 81.6575 },
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200",
-    coverImage: "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?auto=format&fit=crop&q=80&w=1200",
+    avatar: "avatar_art1.png",
+    coverImage: "cover_art1.png",
     sustainabilityScore: 100,
     heritageScore: 97,
     wagesScore: 92,

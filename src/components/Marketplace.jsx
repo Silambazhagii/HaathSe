@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, SlidersHorizontal, CheckCircle2, Sparkles, MapPin, ArrowRight, Zap, Play, Pause, Volume2 } from 'lucide-react';
+import { Search, SlidersHorizontal, CheckCircle2, Sparkles, MapPin, ArrowRight, Zap, Play, Pause, Volume2, Bell } from 'lucide-react';
 import { artisans } from '../data/mockData';
 import { t, translateField, speakText } from '../utils/translator';
 import { subscribeToProducts, mapBackendProductToUI } from '../services/kriticamApi';
@@ -12,19 +12,7 @@ export default function Marketplace({ onProductSelect, onBackClick, language, lo
   const [sortBy, setSortBy] = useState('authenticity'); // 'price-asc', 'price-desc', 'authenticity'
   const [playingVoiceId, setPlayingVoiceId] = useState(null);
 
-  // Live items streamed in via Supabase Realtime during this session
-  const [liveItems, setLiveItems] = useState([]);
 
-  // ── Supabase Realtime subscription ──────────────────────────────────────
-  // When FastAPI pipeline publishes a new product to Supabase, this fires
-  // instantly and prepends it to the marketplace — zero reload needed.
-  useEffect(() => {
-    const unsubscribe = subscribeToProducts((newProduct) => {
-      const uiProduct = mapBackendProductToUI(newProduct);
-      setLiveItems(prev => [uiProduct, ...prev]);
-    });
-    return unsubscribe;
-  }, []);
 
   const categories = ['All', 'Pottery', 'Apparel', 'Wooden Art', 'Home Decor', 'Paintings'];
   const states = ['All', 'Rajasthan', 'Tamil Nadu', 'Chhattisgarh', 'Jammu & Kashmir', 'Karnataka'];
